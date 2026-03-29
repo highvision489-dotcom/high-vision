@@ -118,3 +118,38 @@
     <script src="script.js"></script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Steal the Brainrot | Master Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div class="header-box">
+            <h1>SYSTEM: ACTIVE</h1>
+            <div class="score-display">STOLEN: <span id="score">0</span></div>
+        </div>
+
+        <button onclick="loginAsAdmin()" id="login-trigger" class="login-btn">ADMIN LOGIN</button>
+
+        <div id="admin-panel" style="display: none;">
+            <h3 style="color: #00ffff; margin-top:0;">MASTER CONTROLS</h3>
+            <button onclick="adminForceSpawn()">MANUAL SPAWN (INSTANT)</button>
+            <button onclick="toggleAI()">TOGGLE AI (ON/OFF)</button>
+            <div class="speed-controls">
+                <button onclick="setSpeed(500)">FAST</button>
+                <button onclick="setSpeed(2000)">NORMAL</button>
+                <button onclick="setSpeed(5000)">SLOW</button>
+            </div>
+            <button onclick="score=0; document.getElementById('score').innerText=0;" style="background:#400;">RESET SCORE</button>
+        </div>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
