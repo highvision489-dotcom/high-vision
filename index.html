@@ -26,3 +26,31 @@
     <script src="script.js"></script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Steal the Brainrot | OFFICIAL</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="ui-layer">
+        <h1>BRAINROT TYCOON</h1>
+        <div class="score-box">STOLEN BRAINROT: <span id="score">0</span></div>
+        <br><br>
+        <button onclick="loginAsAdmin()" class="admin-btn">SYSTEM LOGIN</button>
+
+        <div id="admin-panel" style="display: none;">
+            <h3 style="color: red;">ADMIN CHEATS ENABLED</h3>
+            <button onclick="addPoints(1000)" class="admin-btn">GIVE 1000 POINTS</button>
+            <button onclick="resetScore()" class="admin-btn">RESET WORLD</button>
+        </div>
+    </div>
+
+    <div id="game-container">
+        </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
