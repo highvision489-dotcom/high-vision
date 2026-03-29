@@ -202,3 +202,80 @@ function adminForceSpawn() {
 
 // Initialize the game
 startAISpanner();
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let score = 0;
+let items = [];
+const emojis = ["🚽", "🗿", "🥤", "💀", "🍔"];
+
+// 1. ADMIN POWERS
+function adminLogin() {
+    if (prompt("ADMIN KEY:") === "Admin2026") {
+        document.getElementById("admin-menu").style.display = "block";
+    }
+}
+
+function spawnMassive(count) {
+    for (let i = 0; i < count; i++) {
+        items.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: 30 + Math.random() * 20,
+            emoji: emojis[Math.floor(Math.random() * emojis.length)],
+            speedX: (Math.random() - 0.5) * 2,
+            speedY: (Math.random() - 0.5) * 2
+        });
+    }
+}
+
+function clearAll() { items = []; score = 0; scoreEl.innerText = 0; }
+
+// 2. PLAYER LOGIC
+const player = { x: canvas.width/2, y: canvas.height/2, size: 50, emoji: "👑" };
+
+window.addEventListener("mousemove", (e) => {
+    player.x = e.clientX;
+    player.y = e.clientY;
+});
+
+// 3. THE GAME LOOP (The "AI" that runs 60 times a second)
+function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear screen
+
+    // Draw & Move Brainrot Items
+    items.forEach((item, index) => {
+        item.x += item.speedX;
+        item.y += item.speedY;
+
+        // Bounce off walls
+        if (item.x < 0 || item.x > canvas.width) item.speedX *= -1;
+        if (item.y < 0 || item.y > canvas.height) item.speedY *= -1;
+
+        // Draw Item
+        ctx.font = `${item.size}px serif`;
+        ctx.fillText(item.emoji, item.x, item.y);
+
+        // Check Collision (Stealing Logic)
+        let dist = Math.hypot(player.x - item.x, player.y - item.y);
+        if (dist < player.size) {
+            items.splice(index, 1); // Steal it!
+            score += 10;
+            scoreEl.innerText = score;
+        }
+    });
+
+    // Draw Player
+    ctx.font = "50px serif";
+    ctx.fillText(player.emoji, player.x - 25, player.y + 25);
+
+    requestAnimationFrame(update);
+}
+
+// Start with 50 items automatically
+spawnMassive(50);
+update();
