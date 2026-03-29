@@ -390,3 +390,698 @@ init();
 </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Maier - Goosy Gang">
+    <title>AETHERIUS | Restricted Admin Access</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+
+    <style>
+        :root {
+            --ui-blue: #00a2ff;
+            --ui-dark: #0b0c10;
+            --ui-accent: #66fcf1;
+            --error: #ff4c4c;
+        }
+
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #000; }
+
+        /* 1. LOGIN SCREEN OVERLAY */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1b1d1f 0%, #000 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid var(--ui-blue);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 162, 255, 0.2);
+        }
+
+        .login-box h1 { color: white; margin-bottom: 25px; font-weight: 200; letter-spacing: 5px; }
+
+        input {
+            display: block;
+            width: 250px;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--ui-blue); }
+
+        .btn-login {
+            width: 275px;
+            padding: 12px;
+            background: var(--ui-blue);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-guest {
+            background: transparent;
+            color: #888;
+            margin-top: 15px;
+            border: 1px solid #333;
+        }
+
+        #login-error { color: var(--error); font-size: 12px; margin-top: 10px; display: none; }
+
+        /* 2. IN-GAME UI */
+        #game-ui { position: absolute; width: 100%; height: 100%; pointer-events: none; display: none; }
+
+        /* ADMIN PANEL (Hidden by Default) */
+        #admin-panel {
+            position: absolute;
+            top: 20px; right: 20px;
+            width: 320px;
+            background: var(--ui-dark);
+            border-left: 4px solid var(--ui-blue);
+            padding: 20px;
+            color: white;
+            pointer-events: auto;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #admin-panel h2 { color: var(--ui-blue); font-size: 14px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 2px; }
+
+        .stat-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; font-family: monospace; }
+
+        #cmd-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: var(--ui-accent);
+            padding: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+        }
+
+        /* INVENTORY */
+        #inventory {
+            position: absolute;
+            left: 20px; bottom: 20px;
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .inv-slot {
+            width: 60px; height: 60px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border-radius: 12px;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 6px; height: 6px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h1>AETHERIUS</h1>
+            <input type="text" id="user-field" placeholder="Username">
+            <input type="password" id="pass-field" placeholder="Password">
+            <button class="btn-login" onclick="attemptLogin()">ENTER WORLD</button>
+            <button class="btn-login btn-guest" onclick="enterAsGuest()">PLAY AS GUEST</button>
+            <div id="login-error">Invalid Admin Credentials</div>
+        </div>
+    </div>
+
+    <div id="game-ui">
+        <div id="crosshair"></div>
+        <div id="inventory"></div>
+
+        <div id="admin-panel">
+            <h2>SYSTEM_OVERRIDE</h2>
+            <div class="stat-row"><span>USER:</span> <span id="admin-name">---</span></div>
+            <div class="stat-row"><span>PERMS:</span> <span id="admin-status" style="color:var(--ui-accent)">---</span></div>
+            <div class="stat-row"><span>POS:</span> <span id="admin-pos">0,0,0</span></div>
+            <div class="stat-row"><span>FPS:</span> <span id="admin-fps">60</span></div>
+            
+            <input type="text" id="cmd-input" placeholder="Enter System Command...">
+            <div style="font-size: 9px; opacity: 0.4; margin-top: 10px;">F2 to Toggle Panel | WASD Move | SPACE Jump</div>
+        </div>
+    </div>
+
+<script>
+/**
+ * AETHERIUS ENGINE v2.0
+ * Security & Logic Core
+ */
+
+// --- USER CONFIGURATION ---
+const ADMIN_USERNAME = "Maier"; 
+const ADMIN_PASSWORD = "123"; // You can change this to whatever you want
+
+let isAdmin = false;
+let playerSpeed = 15;
+let jumpForce = 12;
+
+// --- 3D ENGINE VARIABLES ---
+let scene, camera, renderer, clock, player;
+let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, canJump = false;
+let velocity = new THREE.Vector3();
+let direction = new THREE.Vector3();
+let objects = [];
+
+// 1. AUTHENTICATION LOGIC
+function attemptLogin() {
+    const user = document.getElementById('user-field').value;
+    const pass = document.getElementById('pass-field').value;
+
+    if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
+        isAdmin = true;
+        launchGame("SUPERUSER");
+    } else {
+        document.getElementById('login-error').style.display = 'block';
+    }
+}
+
+function enterAsGuest() {
+    isAdmin = false;
+    launchGame("GUEST");
+}
+
+function launchGame(role) {
+    document.getElementById('login-overlay').style.opacity = '0';
+    setTimeout(() => {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('game-ui').style.display = 'block';
+        
+        // Update Admin UI info
+        document.getElementById('admin-name').innerText = isAdmin ? ADMIN_USERNAME : "Guest_User";
+        document.getElementById('admin-status').innerText = role;
+        
+        init3D();
+    }, 500);
+}
+
+// 2. 3D WORLD INITIALIZATION
+function init3D() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050505);
+    scene.fog = new THREE.Fog(0x050505, 0, 150);
+
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    clock = new THREE.Clock();
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    // Lighting
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+    scene.add(hemi);
+
+    const sun = new THREE.DirectionalLight(0x00a2ff, 1.5);
+    sun.position.set(50, 50, 50);
+    sun.castShadow = true;
+    scene.add(sun);
+
+    // The World Floor
+    const groundGeo = new THREE.PlaneGeometry(1000, 1000);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const grid = new THREE.GridHelper(1000, 100, 0x00a2ff, 0x222222);
+    scene.add(grid);
+
+    // Player Object
+    const playerGeo = new THREE.BoxGeometry(1, 2, 1);
+    const playerMat = new THREE.MeshStandardMaterial({ color: isAdmin ? 0x00a2ff : 0x555555 });
+    player = new THREE.Mesh(playerGeo, playerMat);
+    player.position.y = 1;
+    player.castShadow = true;
+    scene.add(player);
+
+    // Populate World with "Element" orbs
+    const colors = [0xff4500, 0x00ff00, 0x00a2ff, 0xffff00];
+    for (let i = 0; i < 50; i++) {
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(0.5, 16, 16),
+            new THREE.MeshStandardMaterial({ 
+                color: colors[Math.floor(Math.random() * colors.length)],
+                emissive: 0xffffff,
+                emissiveIntensity: 0.2
+            })
+        );
+        sphere.position.set((Math.random() - 0.5) * 100, 0.5, (Math.random() - 0.5) * 100);
+        scene.add(sphere);
+        objects.push(sphere);
+    }
+
+    setupInput();
+    animate();
+}
+
+// 3. INPUT & CONTROLS
+function setupInput() {
+    document.addEventListener('keydown', (e) => {
+        if (document.activeElement.tagName === 'INPUT') return; // Don't move while typing in chat/admin
+
+        switch (e.code) {
+            case 'KeyW': moveForward = true; break;
+            case 'KeyS': moveBackward = true; break;
+            case 'KeyA': moveLeft = true; break;
+            case 'KeyD': moveRight = true; break;
+            case 'Space': if (canJump) velocity.y += jumpForce; canJump = false; break;
+            case 'F2': 
+                if (isAdmin) {
+                    const panel = document.getElementById('admin-panel');
+                    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+                }
+                break;
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        switch (e.code) {
+            case 'KeyW': moveForward = false; break;
+            case 'KeyS': moveBackward = false; break;
+            case 'KeyA': moveLeft = false; break;
+            case 'KeyD': moveRight = false; break;
+        }
+    });
+
+    // Admin Command Input
+    document.getElementById('cmd-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            handleCommand(e.target.value);
+            e.target.value = '';
+        }
+    });
+}
+
+// 4. ADMIN COMMANDS
+function handleCommand(cmd) {
+    const parts = cmd.toLowerCase().split(' ');
+    
+    if (parts[0] === '/speed') {
+        playerSpeed = parseFloat(parts[1]) || 15;
+    } else if (parts[0] === '/jump') {
+        jumpForce = parseFloat(parts[1]) || 12;
+    } else if (parts[0] === '/tp') {
+        player.position.set(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
+    } else if (parts[0] === '/night') {
+        scene.background = new THREE.Color(0x000000);
+    } else if (parts[0] === '/day') {
+        scene.background = new THREE.Color(0x87ceeb);
+    }
+}
+
+// 5. THE GAME LOOP
+function animate() {
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+
+    // Movement Logic
+    velocity.x -= velocity.x * 10.0 * delta;
+    velocity.z -= velocity.z * 10.0 * delta;
+    velocity.y -= 30.0 * delta; // Gravity
+
+    direction.z = Number(moveForward) - Number(moveBackward);
+    direction.x = Number(moveRight) - Number(moveLeft);
+    direction.normalize();
+
+    if (moveForward || moveBackward) velocity.z -= direction.z * playerSpeed * 10.0 * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * playerSpeed * 10.0 * delta;
+
+    player.translateX(-velocity.x * delta);
+    player.translateZ(-velocity.z * delta);
+    player.position.y += (velocity.y * delta);
+
+    if (player.position.y < 1) {
+        velocity.y = 0;
+        player.position.y = 1;
+        canJump = true;
+    }
+
+    // Third Person Camera Follow
+    const camOffset = new THREE.Vector3(0, 5, 12);
+    camera.position.lerp(player.position.clone().add(camOffset), 0.1);
+    camera.lookAt(player.position);
+
+    // Collision check for items
+    objects.forEach((obj, idx) => {
+        if (player.position.distanceTo(obj.position) < 1.5) {
+            scene.remove(obj);
+            objects.splice(idx, 1);
+            updateInventory(obj.material.color.getHex());
+        }
+    });
+
+    // Update UI Stats
+    if (isAdmin) {
+        document.getElementById('admin-pos').innerText = 
+            `${Math.round(player.position.x)}, ${Math.round(player.position.y)}, ${Math.round(player.position.z)}`;
+    }
+
+    renderer.render(scene, camera);
+}
+
+function updateInventory(colorHex) {
+    const inv = document.getElementById('inventory');
+    const slot = document.createElement('div');
+    slot.className = 'inv-slot';
+    slot.style.borderColor = '#' + colorHex.toString(16);
+    slot.innerText = '💎';
+    inv.appendChild(slot);
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHERIUS | Multiplayer Verified</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+    <style>
+        :root {
+            --admin-blue: #00a2ff;
+            --verified-tick: #1DA1F2;
+            --ui-dark: rgba(10, 10, 12, 0.9);
+        }
+
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #000; }
+
+        /* --- LOGIN SYSTEM --- */
+        #login-screen {
+            position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: flex; align-items: center; justify-content: center;
+        }
+        .login-card {
+            background: #111; padding: 40px; border-radius: 20px; border: 1px solid #333;
+            text-align: center; width: 320px;
+        }
+        input {
+            width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444;
+            color: white; border-radius: 8px; outline: none; box-sizing: border-box;
+        }
+        .btn {
+            width: 100%; padding: 12px; background: var(--admin-blue); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px;
+        }
+
+        /* --- VERIFIED TICK ICON --- */
+        .tick-icon {
+            display: inline-block; width: 16px; height: 16px;
+            background: var(--verified-tick); color: white; font-size: 10px;
+            border-radius: 50%; text-align: center; line-height: 16px; margin-left: 5px;
+        }
+
+        /* --- MULTIPLAYER CHAT --- */
+        #chat-container {
+            position: absolute; bottom: 20px; left: 20px; width: 300px;
+            pointer-events: auto; z-index: 100;
+        }
+        #chat-box {
+            height: 150px; overflow-y: auto; background: rgba(0,0,0,0.5);
+            padding: 10px; border-radius: 8px; color: white; font-size: 13px;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        #chat-input { width: 100%; margin-top: 5px; background: rgba(0,0,0,0.8); }
+
+        /* --- ADMIN OVERLAY --- */
+        #admin-status {
+            position: absolute; top: 20px; left: 20px; color: white;
+            background: var(--ui-dark); padding: 10px 20px; border-radius: 30px;
+            border-left: 5px solid var(--admin-blue); font-size: 12px;
+        }
+
+        #crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 4px; height: 4px; background: white; border-radius: 50%; opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <h1 style="color:white; margin-bottom:20px;">AETHERIUS</h1>
+            <input type="text" id="user-field" placeholder="Username">
+            <input type="password" id="pass-field" placeholder="Admin Password (Optional)">
+            <button class="btn" onclick="startApp()">START GAME</button>
+            <p id="error" style="color:red; font-size:11px; margin-top:10px; display:none;">Invalid Password for Admin account</p>
+        </div>
+    </div>
+
+    <div id="game-ui" style="display:none;">
+        <div id="crosshair"></div>
+        <div id="admin-status">
+            PLAYER: <span id="display-name">Guest</span> <span id="admin-tick"></span>
+        </div>
+
+        <div id="chat-container">
+            <div id="chat-box"></div>
+            <input type="text" id="chat-input" placeholder="Press Enter to chat...">
+        </div>
+    </div>
+
+<script>
+/**
+ * AETHERIUS MULTIPLAYER CORE
+ */
+
+// 1. IDENTITY CONFIG
+const ADMIN_NAME = "Maier";
+const ADMIN_PASS = "123"; // Set your password here
+let currentUser = "";
+let isVerifiedAdmin = false;
+
+// 2. NETWORKING (PeerJS)
+let peer;
+let connections = [];
+let otherPlayers = {}; // Stores 3D meshes of other players
+
+function startApp() {
+    const user = document.getElementById('user-field').value || "Guest" + Math.floor(Math.random()*100);
+    const pass = document.getElementById('pass-field').value;
+
+    // Check if user is trying to be the Admin
+    if (user === ADMIN_NAME) {
+        if (pass === ADMIN_PASS) {
+            isVerifiedAdmin = true;
+            currentUser = ADMIN_NAME;
+        } else {
+            document.getElementById('error').style.display = 'block';
+            return;
+        }
+    } else {
+        currentUser = user;
+    }
+
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('game-ui').style.display = 'block';
+    
+    // UI Update for Verified Tick
+    document.getElementById('display-name').innerText = currentUser;
+    if (isVerifiedAdmin) {
+        document.getElementById('admin-tick').innerHTML = '<span class="tick-icon">✔</span>';
+        addChatMessage("System", "Welcome back, Admin Maier. Verified status active.");
+    }
+
+    initNetworking();
+    init3D();
+}
+
+// 3. MULTIPLAYER LOGIC
+function initNetworking() {
+    // We use a public PeerJS server for multiplayer
+    peer = new Peer('aetherius-' + currentUser + '-' + Math.floor(Math.random()*999));
+
+    peer.on('open', (id) => {
+        addChatMessage("Network", "Connected to Global Lobby as " + currentUser);
+    });
+
+    peer.on('connection', (conn) => {
+        setupConn(conn);
+    });
+}
+
+function setupConn(conn) {
+    conn.on('data', (data) => {
+        if (data.type === 'move') {
+            updatePlayerPosition(data.user, data.pos, data.isVerified);
+        }
+        if (data.type === 'chat') {
+            addChatMessage(data.user, data.msg, data.isVerified);
+        }
+    });
+    connections.push(conn);
+}
+
+function addChatMessage(user, msg, verified = false) {
+    const box = document.getElementById('chat-box');
+    const line = document.createElement('div');
+    const tick = verified ? '<span class="tick-icon">✔</span>' : '';
+    line.innerHTML = `<strong>${user}${tick}:</strong> ${msg}`;
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
+}
+
+// 4. 3D ENGINE
+let scene, camera, renderer, player, clock;
+let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+let velocity = new THREE.Vector3();
+
+function init3D() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a0c);
+    scene.fog = new THREE.Fog(0x0a0a0c, 0, 100);
+
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    clock = new THREE.Clock();
+
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const light = new THREE.PointLight(0x00a2ff, 1);
+    light.position.set(10, 10, 10);
+    scene.add(light);
+
+    // Floor
+    const grid = new THREE.GridHelper(200, 40, 0x333333, 0x111111);
+    scene.add(grid);
+
+    // Player
+    const geo = new THREE.BoxGeometry(1, 2, 1);
+    const mat = new THREE.MeshStandardMaterial({ color: isVerifiedAdmin ? 0x00a2ff : 0xcccccc });
+    player = new THREE.Mesh(geo, mat);
+    player.position.y = 1;
+    scene.add(player);
+
+    setupInput();
+    animate();
+}
+
+function updatePlayerPosition(userId, pos, verified) {
+    if (!otherPlayers[userId]) {
+        // Create new mesh for a player who joined
+        const geo = new THREE.BoxGeometry(1, 2, 1);
+        const mat = new THREE.MeshStandardMaterial({ color: verified ? 0x00a2ff : 0x444444 });
+        const mesh = new THREE.Mesh(geo, mat);
+        scene.add(mesh);
+        otherPlayers[userId] = mesh;
+        addChatMessage("Server", `${userId} entered the game.`);
+    }
+    otherPlayers[userId].position.set(pos.x, pos.y, pos.z);
+}
+
+function setupInput() {
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyW') moveForward = true;
+        if (e.code === 'KeyS') moveBackward = true;
+        if (e.code === 'KeyA') moveLeft = true;
+        if (e.code === 'KeyD') moveRight = true;
+        if (e.code === 'Enter') {
+            const input = document.getElementById('chat-input');
+            if (input.value) {
+                addChatMessage(currentUser, input.value, isVerifiedAdmin);
+                broadcast({ type: 'chat', user: currentUser, msg: input.value, isVerified: isVerifiedAdmin });
+                input.value = '';
+            }
+            input.focus();
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'KeyW') moveForward = false;
+        if (e.code === 'KeyS') moveBackward = false;
+        if (e.code === 'KeyA') moveLeft = false;
+        if (e.code === 'KeyD') moveRight = false;
+    });
+}
+
+function broadcast(data) {
+    connections.forEach(conn => {
+        if (conn.open) conn.send(data);
+    });
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+
+    // Movement
+    const speed = isVerifiedAdmin ? 30 : 15;
+    if (moveForward) player.translateZ(-speed * delta);
+    if (moveBackward) player.translateZ(speed * delta);
+    if (moveLeft) player.translateX(-speed * delta);
+    if (moveRight) player.translateX(speed * delta);
+
+    // Camera follow
+    const offset = new THREE.Vector3(0, 5, 10);
+    camera.position.lerp(player.position.clone().add(offset), 0.1);
+    camera.lookAt(player.position);
+
+    // Network Sync (Send position every frame)
+    broadcast({ 
+        type: 'move', 
+        user: currentUser, 
+        pos: player.position, 
+        isVerified: isVerifiedAdmin 
+    });
+
+    renderer.render(scene, camera);
+}
+</script>
+</body>
+</html>
