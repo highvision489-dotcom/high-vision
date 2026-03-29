@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Goosy Gang">
+    <title>Infinite Sandbox</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #f0f2f5;
+            overflow: hidden;
+        }
+
+        #game-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #workspace {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background-image: radial-gradient(#d5d8dc 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #sidebar {
+            width: 320px;
+            background: #ffffff;
+            border-left: 2px solid #e1e4e8;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        #sidebar h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 24px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        #element-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            overflow-y: auto;
+            padding-top: 10px;
+        }
+
+        .element {
+            padding: 10px 15px;
+            background: #fff;
+            border: 1px solid #d1d5da;
+            border-radius: 8px;
+            cursor: grab;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .element:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .element:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        .workspace-element {
+            position: absolute;
+            padding: 12px 18px;
+            background: #fff;
+            border: 2px solid #0366d6;
+            border-radius: 8px;
+            cursor: grab;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="workspace"></div>
+        <div id="sidebar">
+            <h2>Discovered</h2>
+            <div id="element-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Define your initial elements
+        const baseElements = [
+            { id: 'water', name: 'Water', emoji: '💧' },
+            { id: 'fire', name: 'Fire', emoji: '🔥' },
+            { id: 'earth', name: 'Earth', emoji: '🌍' },
+            { id: 'wind', name: 'Wind', emoji: '🌬️' },
+            { id: 'metal', name: 'Metal', emoji: '⚙️' },
+            { id: 'energy', name: 'Energy', emoji: '⚡' }
+        ];
+
+        // 2. Define your custom recipes
+        // IMPORTANT: The keys MUST be in alphabetical order! 
+        // Example: 'earth+water' (Correct) vs 'water+earth' (Incorrect)
+        const recipes = {
+            'earth+water': { id: 'mud', name: 'Mud', emoji: '🟤' },
+            'earth+fire': { id: 'lava', name: 'Lava', emoji: '🌋' },
+            'fire+water': { id: 'steam', name: 'Steam', emoji: '💨' },
+            'earth+wind': { id: 'dust', name: 'Dust', emoji: '🌪️' },
+            
+            // Tech & Building custom recipes
+            'energy+metal': { id: 'wire', name: 'Wire', emoji: '🔌' },
+            'metal+wire': { id: 'circuit', name: 'Circuit Board', emoji: '🖧' },
+            'circuit+metal': { id: 'robot', name: 'Robot', emoji: '🤖' },
+            'earth+mud': { id: 'brick', name: 'Brick', emoji: '🧱' },
+            'brick+brick': { id: 'wall', name: 'Wall', emoji: '🚧' }
+        };
+
+        let discovered = [...baseElements];
+        const sidebar = document.getElementById('element-list');
+        const workspace = document.getElementById('workspace');
+        let highestZIndex = 10;
+
+        // Render the sidebar list
+        function renderSidebar() {
+            sidebar.innerHTML = '';
+            discovered.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'element';
+                el.innerHTML = `${item.emoji} ${item.name}`;
+                
+                // Spawn element in workspace on click
+                el.onmousedown = (e) => spawnElement(item, e.clientX, e.clientY);
+                sidebar.appendChild(el);
+            });
+        }
+
+        // Spawn and handle dragging logic
+        function spawnElement(item, startX, startY) {
+            const el = document.createElement('div');
+            el.className = 'workspace-element';
+            el.innerHTML = `${item.emoji} ${item.name}`;
+            el.dataset.id = item.id;
+            highestZIndex++;
+            el.style.zIndex = highestZIndex;
+            
+            workspace.appendChild(el);
+            
+            // Center element on mouse cursor
+            const moveAt = (pageX, pageY) => {
+                el.style.left = pageX - el.offsetWidth / 2 + 'px';
+                el.style.top = pageY - el.offsetHeight / 2 + 'px';
+            };
+            moveAt(startX, startY);
+
+            function onMouseMove(event) {
+                moveAt(event.pageX, event.pageY);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            el.onmouseup = function() {
+                document.removeEventListener('mousemove', onMouseMove);
+                el.onmouseup = null;
+                checkCollision(el);
+            };
+
+            // Allow dragging after it is already on the board
+            el.onmousedown = function(e) {
+                highestZIndex++;
+                el.style.zIndex = highestZIndex;
+                document.addEventListener('mousemove', onMouseMove);
+                el.onmouseup = function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    el.onmouseup = null;
+                    checkCollision(el);
+                };
+            };
+        }
+
+        // Check if two elements are touching and can combine
+        function checkCollision(draggedEl) {
+            const rect1 = draggedEl.getBoundingClientRect();
+            const elements = document.querySelectorAll('.workspace-element');
+            
+            for (let targetEl of elements) {
+                if (targetEl !== draggedEl) {
+                    const rect2 = targetEl.getBoundingClientRect();
+                    
+                    // Bounding box collision detection
+                    if (!(rect1.right < rect2.left || 
+                          rect1.left > rect2.right || 
+                          rect1.bottom < rect2.top || 
+                          rect1.top > rect2.bottom)) {
+                        
+                        const id1 = draggedEl.dataset.id;
+                        const id2 = targetEl.dataset.id;
+                        
+                        // Sort alphabetically to match recipe keys
+                        const comboKey = [id1, id2].sort().join('+');
+                        
+                        if (recipes[comboKey]) {
+                            const result = recipes[comboKey];
+                            
+                            // Remove old materials
+                            draggedEl.remove();
+                            targetEl.remove();
+                            
+                            // Spawn new creation
+                            spawnElement(result, rect2.left + rect2.width/2, rect2.top + rect2.height/2);
+                            
+                            // Add to discovered list if it's new
+                            if (!discovered.find(d => d.id === result.id)) {
+                                discovered.push(result);
+                                renderSidebar();
+                            }
+                        }
+                        break; 
+                    }
+                }
+            }
+        }
+
+        // Initialize the game
+        renderSidebar();
+    </script>
+</body>
+</html>
