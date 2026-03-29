@@ -74,3 +74,64 @@ h1 {
     padding: 10px;
     cursor: pointer;
 }
+body {
+    background-color: #050505;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    overflow: hidden;
+}
+
+#ui-layer {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.score-box {
+    background: linear-gradient(45deg, #222, #444);
+    border: 1px solid #555;
+    padding: 15px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+#admin-panel {
+    background: rgba(10, 10, 10, 0.95);
+    border: 2px solid #ff0000;
+    padding: 20px;
+    width: 250px;
+    box-shadow: 0 0 50px rgba(255, 0, 0, 0.3);
+}
+
+.admin-grid button {
+    width: 100%;
+    margin: 5px 0;
+    padding: 10px;
+    background: #333;
+    color: white;
+    border: 1px solid #777;
+    cursor: pointer;
+}
+
+.admin-grid button:hover {
+    background: #ff0000;
+}
+
+.danger-btn { background: #600 !important; }
+.gold-btn { color: gold !important; border-color: gold !important; }
+
+.brainrot-item {
+    position: absolute;
+    font-size: 80px;
+    cursor: pointer;
+    transition: all 0.3s ease-out;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-30px) rotate(10deg); }
+}
