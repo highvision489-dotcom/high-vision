@@ -77,3 +77,57 @@ function resetScore() {
     gameContainer.innerHTML = ""; // Clear screen
     for(let i = 0; i < 5; i++) spawnMeme(); // Restart
 }
+let score = 0;
+const ADMIN_PASS = "Admin2026"; // Your secret password
+const gameContainer = document.getElementById("game-container");
+const scoreDisplay = document.getElementById("score");
+
+function loginAsAdmin() {
+    let entry = prompt("ENTER ACCESS KEY:");
+    if (entry === ADMIN_PASS) {
+        document.getElementById("admin-panel").style.display = "block";
+        document.getElementById("login-trigger").style.display = "none";
+        alert("POWER GRANTED. YOU ARE NOW THE MASTER.");
+    }
+}
+
+// Power 1: Spawning specific items
+function spawnItem(emoji) {
+    const item = document.createElement("div");
+    item.className = "brainrot-item";
+    item.innerText = emoji;
+    
+    // Admin items are "higher quality" (glow more)
+    item.style.filter = "drop-shadow(0 0 20px white)";
+    
+    // Random position
+    const x = Math.random() * (window.innerWidth - 100);
+    const y = Math.random() * (window.innerHeight - 100);
+    
+    item.style.left = x + "px";
+    item.style.top = y + "px";
+
+    // Power 2: "Have them" (Collection logic)
+    item.onclick = () => {
+        score += 50;
+        scoreDisplay.innerText = score;
+        item.style.transform = "scale(0) rotate(360deg)"; // Cool disappear effect
+        setTimeout(() => item.remove(), 200);
+    };
+
+    gameContainer.appendChild(item);
+}
+
+// Power 3: Set Max Points
+function giveMaxPoints() {
+    score = 999999;
+    scoreDisplay.innerText = score;
+}
+
+// Power 4: The Nuke (Clear everything)
+function clearWorld() {
+    gameContainer.innerHTML = "";
+    score = 0;
+    scoreDisplay.innerText = score;
+    alert("World has been reset by Admin.");
+}
