@@ -135,3 +135,76 @@ body {
     0%, 100% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-30px) rotate(10deg); }
 }
+body {
+    background-color: #020202;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    overflow: hidden;
+}
+
+#ui-layer {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 99;
+}
+
+.header-box {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 5px solid #00ffff;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(5px);
+}
+
+h1 { font-size: 1.2rem; margin: 0; color: #00ffff; letter-spacing: 3px; }
+.score-display { font-size: 2rem; font-weight: bold; }
+
+.login-btn {
+    background: none;
+    border: 1px solid #555;
+    color: #888;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#admin-panel {
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid #00ffff;
+    padding: 15px;
+    width: 220px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+#admin-panel button {
+    width: 100%;
+    margin: 4px 0;
+    background: #111;
+    color: #00ffff;
+    border: 1px solid #333;
+    padding: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#admin-panel button:hover { background: #222; border-color: #00ffff; }
+
+.speed-controls { display: flex; gap: 5px; }
+
+.brainrot-item {
+    position: absolute;
+    font-size: 70px;
+    cursor: crosshair;
+    user-select: none;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: float 4s ease-in-out infinite;
+}
+
+.brainrot-item:active { transform: scale(0.5); }
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(10px, -20px) rotate(5deg); }
+    66% { transform: translate(-10px, 10px) rotate(-5deg); }
+}
