@@ -1,1087 +1,2489 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Maier - Goosy Gang">
-    <title>AETHERIUS 3D | Admin Sandbox</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Snatch - Multiplayer Brain Battle</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 
-    <style>
-        :root {
-            --admin-blue: #00a2ff;
-            --admin-dark: #1b1d1f;
-            --glass: rgba(255, 255, 255, 0.1);
-        }
+  :root {
+    --bg: #0f0e17;
+    --surface: #1a1a2e;
+    --card: #16213e;
+    --accent1: #ff6b6b;
+    --accent2: #ffd93d;
+    --accent3: #6bcb77;
+    --accent4: #4d96ff;
+    --accent5: #c77dff;
+    --text: #fffffe;
+    --muted: #a7a9be;
+    --admin: #ff9f1c;
+  }
 
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #000; }
-        
-        /* UI OVERLAY */
-        #ui-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; /* Allows clicking through to the game */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* ADMIN PANEL */
-        #admin-panel {
-            position: absolute;
-            top: 20px; right: 20px;
-            width: 300px;
-            background: var(--admin-dark);
-            border: 2px solid var(--admin-blue);
-            border-radius: 8px;
-            color: white;
-            padding: 15px;
-            pointer-events: auto;
-            display: none; /* Toggle with F2 */
-            box-shadow: 0 0 20px rgba(0, 162, 255, 0.5);
-        }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-        #admin-panel h2 { margin: 0 0 10px 0; color: var(--admin-blue); font-size: 18px; text-transform: uppercase; }
-        
-        .admin-stat { font-size: 12px; margin-bottom: 5px; opacity: 0.8; }
-        
-        input.admin-input {
-            width: 100%;
-            padding: 8px;
-            background: #000;
-            border: 1px solid #444;
-            color: var(--admin-blue);
-            outline: none;
-            font-family: monospace;
-            margin-top: 10px;
-        }
+  /* ====== FLOATING BLOBS ====== */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+    animation: blobFloat 8s ease-in-out infinite alternate;
+  }
+  .blob1 { width: 400px; height: 400px; background: var(--accent4); top: -100px; left: -100px; animation-delay: 0s; }
+  .blob2 { width: 350px; height: 350px; background: var(--accent5); bottom: -100px; right: -100px; animation-delay: 3s; }
+  .blob3 { width: 250px; height: 250px; background: var(--accent1); top: 40%; left: 40%; animation-delay: 6s; }
 
-        /* INVENTORY SIDEBAR */
-        #inventory {
-            position: absolute;
-            left: 20px; top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 15px;
-            color: white;
-            pointer-events: auto;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+  @keyframes blobFloat {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(30px, 20px) scale(1.1); }
+  }
 
-        .inv-slot {
-            width: 50px; height: 50px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            border-radius: 8px;
-            transition: 0.2s;
-        }
+  /* ====== SCREENS ====== */
+  .screen {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .screen.active { display: flex; }
 
-        /* CROSSHAIR */
-        #crosshair {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 10px; height: 10px;
-            border: 2px solid white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.5;
-        }
+  /* ====== LOGO ====== */
+  .logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    background: linear-gradient(135deg, var(--accent2), var(--accent1), var(--accent5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    line-height: 1;
+    letter-spacing: 2px;
+    animation: pulse 3s ease-in-out infinite;
+  }
 
-        /* NOTIFICATIONS */
-        #notif-container {
-            position: absolute;
-            bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
 
-        .notif {
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            border-bottom: 2px solid var(--admin-blue);
-            animation: slideUp 0.3s ease-out;
-        }
+  .brain-icon {
+    font-size: 4rem;
+    animation: wiggle 2s ease-in-out infinite;
+    display: block;
+    text-align: center;
+  }
 
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    </style>
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    text-align: center;
+    margin: 8px 0 30px;
+    font-weight: 600;
+  }
+
+  /* ====== CARDS ====== */
+  .card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 30px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .card h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--accent2);
+  }
+
+  /* ====== INPUTS ====== */
+  .input-group {
+    margin-bottom: 16px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  input[type="text"], input[type="password"], input[type="number"], select {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent4);
+  }
+
+  select option { background: #1a1a2e; }
+
+  /* ====== BUTTONS ====== */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 1px;
+  }
+
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+  .btn:active { transform: translateY(0); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent4), var(--accent5));
+    color: white;
+    margin-top: 6px;
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, var(--accent3), #2abe5a);
+    color: white;
+    margin-top: 6px;
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, var(--accent1), #e84545);
+    color: white;
+    margin-top: 6px;
+  }
+
+  .btn-yellow {
+    background: linear-gradient(135deg, var(--accent2), #ffb703);
+    color: #1a1a2e;
+    margin-top: 6px;
+  }
+
+  .btn-admin {
+    background: linear-gradient(135deg, var(--admin), #f77f00);
+    color: white;
+    margin-top: 6px;
+  }
+
+  .btn-sm {
+    width: auto;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.2);
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .btn-outline:hover { border-color: var(--accent4); color: var(--text); }
+
+  /* ====== HOME SCREEN ====== */
+  .menu-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+    margin-top: 10px;
+  }
+
+  /* ====== ONLINE PLAYERS ====== */
+  .online-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(107, 203, 119, 0.15);
+    border: 1px solid rgba(107, 203, 119, 0.3);
+    color: var(--accent3);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: blink 1.2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ====== LOBBY ====== */
+  .lobby-grid {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .room-card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .room-card:hover { border-color: var(--accent4); transform: translateX(4px); }
+
+  .room-info h3 { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--accent2); }
+  .room-info p { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+  .room-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .room-status.open { background: rgba(107,203,119,0.15); color: var(--accent3); }
+  .room-status.full { background: rgba(255,107,107,0.15); color: var(--accent1); }
+  .room-status.playing { background: rgba(255,217,61,0.15); color: var(--accent2); }
+
+  /* ====== WAITING ROOM ====== */
+  .players-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0;
+  }
+
+  .player-slot {
+    background: rgba(255,255,255,0.04);
+    border: 2px dashed rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  .player-slot.filled {
+    border-style: solid;
+    border-color: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .player-slot .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+  }
+
+  .player-slot .pname {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .player-slot .prole {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ====== GAME SCREEN ====== */
+  .game-header {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .timer-display {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--accent2);
+    background: rgba(255,217,61,0.1);
+    border: 2px solid rgba(255,217,61,0.3);
+    padding: 6px 20px;
+    border-radius: 12px;
+    min-width: 80px;
+    text-align: center;
+    transition: color 0.3s;
+  }
+
+  .timer-display.danger { color: var(--accent1); border-color: rgba(255,107,107,0.5); background: rgba(255,107,107,0.1); animation: shake 0.3s infinite; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+
+  .score-board {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .score-chip {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .score-chip span { color: var(--accent4); }
+
+  /* ====== QUESTION CARD ====== */
+  .question-card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 30px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .question-category {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent5);
+    margin-bottom: 12px;
+  }
+
+  .question-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1.4;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 500px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .players-list { grid-template-columns: 1fr; }
+  }
+
+  .option-btn {
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: rgba(77,150,255,0.15);
+    border-color: var(--accent4);
+    transform: translateY(-2px);
+  }
+
+  .option-btn:disabled { cursor: not-allowed; }
+
+  .option-btn.correct {
+    background: rgba(107,203,119,0.2);
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+
+  .option-btn.wrong {
+    background: rgba(255,107,107,0.2);
+    border-color: var(--accent1);
+    color: var(--accent1);
+  }
+
+  .option-btn.selected {
+    background: rgba(77,150,255,0.2);
+    border-color: var(--accent4);
+  }
+
+  .option-letter {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  /* ====== PROGRESS BAR ====== */
+  .progress-wrap {
+    width: 100%;
+    max-width: 800px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    height: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent4), var(--accent5));
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  /* ====== ANSWER FEEDBACK ====== */
+  .feedback-banner {
+    width: 100%;
+    max-width: 800px;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    text-align: center;
+    margin-top: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .feedback-banner.show { opacity: 1; }
+  .feedback-banner.correct-fb { background: rgba(107,203,119,0.2); border: 2px solid var(--accent3); color: var(--accent3); }
+  .feedback-banner.wrong-fb { background: rgba(255,107,107,0.2); border: 2px solid var(--accent1); color: var(--accent1); }
+
+  /* ====== PLAYERS SIDEBAR ====== */
+  .game-layout {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: 1100px;
+    align-items: flex-start;
+  }
+
+  .sidebar {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 18px;
+    width: 200px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 700px) {
+    .game-layout { flex-direction: column; }
+    .sidebar { width: 100%; }
+  }
+
+  .sidebar h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: var(--accent2);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-player {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    margin-bottom: 8px;
+    transition: background 0.2s;
+  }
+
+  .sidebar-player.me { background: rgba(77,150,255,0.1); border: 1px solid rgba(77,150,255,0.2); }
+
+  .sidebar-player .mini-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-player .pinfo { flex: 1; min-width: 0; }
+  .sidebar-player .pname2 { font-size: 0.82rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-player .pscore { font-size: 0.75rem; color: var(--accent4); font-weight: 700; }
+
+  /* ====== RESULTS SCREEN ====== */
+  .podium {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin: 20px 0;
+    justify-content: center;
+  }
+
+  .podium-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .podium-avatar {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    border: 3px solid transparent;
+  }
+
+  .podium-block {
+    width: 80px;
+    border-radius: 10px 10px 0 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: white;
+  }
+
+  .p1 .podium-block { height: 100px; background: linear-gradient(135deg, #ffd700, #ffb703); }
+  .p2 .podium-block { height: 75px; background: linear-gradient(135deg, #c0c0c0, #a8a8a8); }
+  .p3 .podium-block { height: 55px; background: linear-gradient(135deg, #cd7f32, #b8681c); }
+
+  .p1 .podium-avatar { border-color: #ffd700; background: rgba(255,215,0,0.15); }
+  .p2 .podium-avatar { border-color: #c0c0c0; background: rgba(192,192,192,0.1); }
+  .p3 .podium-avatar { border-color: #cd7f32; background: rgba(205,127,50,0.1); }
+
+  .podium-name { font-size: 0.8rem; font-weight: 700; color: var(--text); text-align: center; max-width: 80px; }
+  .podium-pts { font-size: 0.75rem; color: var(--muted); }
+
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+
+  .results-table th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .results-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .results-table tr:first-child td { color: var(--accent2); font-weight: 700; }
+
+  /* ====== ADMIN PANEL ====== */
+  .admin-header {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .admin-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--admin);
+  }
+
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  .admin-card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 24px;
+  }
+
+  .admin-card h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: var(--admin);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-box {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .stat-box .stat-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--accent4);
+  }
+
+  .stat-box .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .player-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.88rem;
+  }
+
+  .player-row:last-child { border-bottom: none; }
+
+  .kick-btn {
+    background: rgba(255,107,107,0.15);
+    border: 1px solid rgba(255,107,107,0.3);
+    color: var(--accent1);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .kick-btn:hover { background: rgba(255,107,107,0.3); }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle {
+    position: relative;
+    width: 44px; height: 24px;
+    cursor: pointer;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 24px;
+    transition: 0.3s;
+  }
+
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--accent3); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  .log-box {
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: monospace;
+    font-size: 0.78rem;
+    color: var(--accent3);
+    height: 140px;
+    overflow-y: auto;
+    line-height: 1.8;
+  }
+
+  /* ====== CHAT ====== */
+  .chat-box {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    height: 120px;
+    overflow-y: auto;
+    padding: 10px;
+    font-size: 0.82rem;
+    margin-bottom: 8px;
+  }
+
+  .chat-msg { margin-bottom: 4px; }
+  .chat-msg .chat-author { font-weight: 700; color: var(--accent4); }
+  .chat-msg.system .chat-author { color: var(--accent2); }
+
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .chat-input-row input {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .chat-send {
+    background: var(--accent4);
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  /* ====== NOTIFICATION ====== */
+  .notif {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card);
+    border-left: 4px solid var(--accent3);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    z-index: 1000;
+    transform: translateX(200px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 300px;
+  }
+
+  .notif.show { transform: translateX(0); opacity: 1; }
+  .notif.err { border-left-color: var(--accent1); }
+
+  /* ====== MISC ====== */
+  .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 16px 0; }
+  .text-muted { color: var(--muted); font-size: 0.85rem; text-align: center; margin-top: 12px; }
+  .text-muted a { color: var(--accent4); cursor: pointer; text-decoration: underline; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+  .badge-admin { background: rgba(255,159,28,0.2); color: var(--admin); border: 1px solid rgba(255,159,28,0.3); }
+  .badge-you { background: rgba(77,150,255,0.2); color: var(--accent4); border: 1px solid rgba(77,150,255,0.3); }
+
+  /* ====== BRAIN ROD ====== */
+  .rod-card {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,159,28,0.25);
+    border-radius: 14px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    min-width: 90px;
+  }
+  .rod-card:hover { border-color: var(--admin); background: rgba(255,159,28,0.1); transform: translateY(-3px); }
+  .rod-card .rod-emoji { font-size: 1.8rem; display:block; }
+  .rod-card .rod-name { font-size: 0.72rem; font-weight: 700; color: var(--muted); margin-top: 4px; }
+
+  .active-rod-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,159,28,0.15);
+    border: 1px solid rgba(255,159,28,0.35);
+    color: var(--admin);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    animation: rodPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes rodPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,159,28,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(255,159,28,0); }
+  }
+
+  .rod-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 3px solid var(--admin);
+    border-radius: 24px;
+    padding: 30px 40px;
+    text-align: center;
+    z-index: 2000;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    min-width: 280px;
+    box-shadow: 0 0 60px rgba(255,159,28,0.4);
+  }
+  .rod-alert.show { transform: translate(-50%, -50%) scale(1); }
+  .rod-alert .rod-big { font-size: 4rem; display:block; animation: wiggle 0.5s ease-in-out infinite; }
+  .rod-alert h2 { font-family:'Fredoka One',cursive; font-size:1.6rem; color:var(--admin); margin:10px 0 6px; }
+  .rod-alert p { color:var(--muted); font-size:0.9rem; }
+  .rod-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1999;display:none; }
+  .rod-overlay.show { display:block; }
+
+  .winner-banner {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    text-align: center;
+    background: linear-gradient(135deg, var(--accent2), var(--accent1));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .confetti-wrap {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: -10px;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+
+  @keyframes confettiFall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .brain-snatch-notice {
+    background: rgba(255,107,107,0.1);
+    border: 2px solid rgba(255,107,107,0.3);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    color: var(--accent1);
+    font-weight: 700;
+    text-align: center;
+    margin-top: 10px;
+  }
+</style>
 </head>
 <body>
 
-    <div id="ui-layer">
-        <div id="crosshair"></div>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
 
-        <div id="inventory">
-            <h3 style="font-size: 10px; text-align: center; margin-bottom: 10px;">ELEMENTS</h3>
-            <div id="inv-list"></div>
-        </div>
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
 
-        <div id="admin-panel">
-            <h2>Admin Console</h2>
-            <div class="admin-stat">User: <span style="color:yellow">Maier_Admin</span></div>
-            <div class="admin-stat">Status: <span style="color:lime">Superuser</span></div>
-            <div class="admin-stat">Coordinates: <span id="coords">0, 0, 0</span></div>
-            
-            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-            
-            <div style="font-size: 11px; opacity: 0.7;">COMMANDS: /give [item], /speed [val], /jump [val], /tp [x y z]</div>
-            <input type="text" id="command-line" class="admin-input" placeholder="Enter command...">
-        </div>
+<!-- CONFETTI -->
+<div class="confetti-wrap" id="confettiWrap"></div>
 
-        <div id="notif-container"></div>
+<!-- BRAIN ROD ALERT (shows to players in game) -->
+<div class="rod-overlay" id="rodOverlay" onclick="closeRodAlert()"></div>
+<div class="rod-alert" id="rodAlert">
+  <span class="rod-big" id="rodAlertEmoji">🧠</span>
+  <h2 id="rodAlertTitle">Brain Rod!</h2>
+  <p id="rodAlertDesc">A Brain Rod has been spawned!</p>
+  <p style="margin-top:12px;font-size:0.8rem;color:var(--accent2);font-weight:700;" id="rodAlertEffect"></p>
+  <button class="btn btn-admin btn-sm" onclick="closeRodAlert()" style="margin-top:14px;width:auto;padding:8px 24px;">Awesome! ⚡</button>
+</div>
+
+<!-- ===== HOME SCREEN ===== -->
+<div class="screen active" id="homeScreen">
+  <span class="brain-icon">🧠</span>
+  <div class="logo">Brain Snatch!</div>
+  <p class="tagline">Steal questions · Outsmart rivals · Rule the brain!</p>
+  <div class="online-badge"><div class="dot"></div> <span id="onlineCount">0</span> players online</div>
+  <div class="menu-btns">
+    <button class="btn btn-primary" onclick="showScreen('loginScreen')">🎮 Play Now</button>
+    <button class="btn btn-yellow" onclick="showScreen('howToScreen')">📖 How to Play</button>
+    <button class="btn btn-outline" onclick="checkAdminLogin()">🔐 Admin Login</button>
+  </div>
+</div>
+
+<!-- ===== HOW TO PLAY SCREEN ===== -->
+<div class="screen" id="howToScreen">
+  <div class="card" style="max-width:520px">
+    <h2>📖 How to Play</h2>
+    <div style="font-size:0.92rem; line-height:1.9; color:var(--muted);">
+      <p>🧠 <strong style="color:var(--text)">Brain Snatch</strong> is a fast-paced multiplayer trivia battle!</p>
+      <div class="divider"></div>
+      <p>🎯 <strong style="color:var(--accent2)">Answer correctly</strong> to earn <strong style="color:var(--accent4)">10 points</strong></p>
+      <p>⚡ <strong style="color:var(--accent2)">Answer faster</strong> for <strong style="color:var(--accent3)">bonus points</strong></p>
+      <p>🧲 <strong style="color:var(--accent2)">Brain Snatch!</strong> — Steal 5 pts from the leader when you beat them on the same question</p>
+      <p>⏱️ You have <strong style="color:var(--accent1)">20 seconds</strong> per question</p>
+      <p>🏆 Most points after all rounds <strong style="color:var(--accent2)">wins the game!</strong></p>
+      <div class="divider"></div>
+      <p>🌍 Rooms are <strong style="color:var(--text)">globally visible</strong> — create or join any room!</p>
+    </div>
+    <button class="btn btn-primary" onclick="showScreen('homeScreen')" style="margin-top:20px">← Back</button>
+  </div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div class="screen" id="loginScreen">
+  <div class="card">
+    <h2>🎮 Join the Battle</h2>
+    <div class="input-group">
+      <label>Your Nickname</label>
+      <input type="text" id="playerName" placeholder="e.g. BrainBlaster99" maxlength="20">
+    </div>
+    <div class="input-group">
+      <label>Choose Your Avatar</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+        <span id="avatarPicker" style="display:flex;gap:8px;flex-wrap:wrap;"></span>
+      </div>
+    </div>
+    <button class="btn btn-success" onclick="joinAsPlayer()">🚀 Enter Lobby</button>
+    <p class="text-muted">← <a onclick="showScreen('homeScreen')">Back to Menu</a></p>
+  </div>
+</div>
+
+<!-- ===== ADMIN LOGIN SCREEN ===== -->
+<div class="screen" id="adminLoginScreen">
+  <div class="card">
+    <h2>🔐 Admin Access</h2>
+    <div class="input-group">
+      <label>Username</label>
+      <input type="text" id="adminUser" placeholder="Enter admin username">
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <input type="password" id="adminPass" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')loginAdmin()">
+    </div>
+    <button class="btn btn-admin" onclick="loginAdmin()">🔓 Login as Admin</button>
+    <p class="text-muted">← <a onclick="showScreen('homeScreen')">Back</a></p>
+  </div>
+</div>
+
+<!-- ===== LOBBY SCREEN ===== -->
+<div class="screen" id="lobbyScreen">
+  <div style="width:100%;max-width:700px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div class="logo" style="font-size:2rem;">🧠 Brain Snatch!</div>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:4px;">Welcome, <strong id="lobbyPlayerName" style="color:var(--accent4)"></strong>!</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="online-badge"><div class="dot"></div> <span id="onlineCount2">0</span> online</div>
+        <button class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
+      </div>
     </div>
 
-<script>
-/**
- * AETHERIUS 3D ENGINE
- * High-performance 3D Sandbox Game
- */
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="showCreateRoom()">➕ Create Room</button>
+      <button class="btn btn-yellow btn-sm" onclick="refreshRooms()">🔄 Refresh</button>
+    </div>
 
-// 1. GAME CONSTANTS & DATA
-const ELEMENTS = [
-    { id: 'water', name: 'Water', emoji: '💧', color: 0x00a2ff },
-    { id: 'fire', name: 'Fire', emoji: '🔥', color: 0xff4500 },
-    { id: 'earth', name: 'Earth', emoji: '🌍', color: 0x8b4513 },
-    { id: 'wind', name: 'Wind', emoji: '🌬️', color: 0xffffff },
-    { id: 'metal', name: 'Metal', emoji: '⚙️', color: 0xaaaaaa }
+    <!-- Create room form -->
+    <div id="createRoomForm" style="display:none;margin-bottom:16px;">
+      <div class="card" style="max-width:100%">
+        <h2 style="font-size:1.2rem;">Create New Room</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="input-group">
+            <label>Room Name</label>
+            <input type="text" id="roomName" placeholder="e.g. Brain Battle #1" maxlength="24">
+          </div>
+          <div class="input-group">
+            <label>Max Players</label>
+            <select id="roomMaxPlayers">
+              <option value="4">4 Players</option>
+              <option value="6">6 Players</option>
+              <option value="8" selected>8 Players</option>
+              <option value="12">12 Players</option>
+              <option value="20">20 Players</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Questions Per Round</label>
+            <select id="roomQCount">
+              <option value="5">5 Questions</option>
+              <option value="10" selected>10 Questions</option>
+              <option value="15">15 Questions</option>
+              <option value="20">20 Questions</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Category</label>
+            <select id="roomCategory">
+              <option value="mixed">🌍 Mixed</option>
+              <option value="science">🔬 Science</option>
+              <option value="history">📜 History</option>
+              <option value="sports">⚽ Sports</option>
+              <option value="tech">💻 Technology</option>
+              <option value="pop">🎵 Pop Culture</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:6px;">
+          <button class="btn btn-success btn-sm" onclick="createRoom()">✅ Create</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('createRoomForm').style.display='none'">✕ Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="roomList" class="lobby-grid"></div>
+    <p id="noRooms" style="text-align:center;color:var(--muted);padding:30px;display:none;">No rooms yet. Create one and start the battle! 🧠</p>
+  </div>
+</div>
+
+<!-- ===== WAITING ROOM SCREEN ===== -->
+<div class="screen" id="waitingScreen">
+  <div class="card" style="max-width:560px">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h2 id="waitRoomName" style="margin-bottom:0;text-align:left;">Room Name</h2>
+      <span id="waitRoomCode" class="badge badge-you" style="font-size:0.7rem;"></span>
+    </div>
+    <p style="color:var(--muted);font-size:0.82rem;margin:6px 0 16px;">Share this room name so friends can join!</p>
+    <div class="players-list" id="waitingPlayers"></div>
+    <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;margin:12px 0;font-size:0.85rem;color:var(--muted);">
+      <span>📋 <strong style="color:var(--text)">Questions:</strong> <span id="waitQCount"></span> &nbsp;|&nbsp; 🎯 <strong style="color:var(--text)">Category:</strong> <span id="waitCategory"></span></span>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-box" id="waitChat"></div>
+    <div class="chat-input-row">
+      <input type="text" id="waitChatInput" placeholder="Chat with players..." maxlength="100" onkeydown="if(event.key==='Enter')sendChat('wait')">
+      <button class="chat-send" onclick="sendChat('wait')">↑</button>
+    </div>
+
+    <div id="hostControls" style="display:none;margin-top:16px;">
+      <button class="btn btn-success" onclick="startGame()">🚀 Start Game!</button>
+      <p class="text-muted">You are the host. Start when ready.</p>
+    </div>
+    <div id="waitingMsg" style="text-align:center;margin-top:16px;color:var(--muted);font-size:0.9rem;">Waiting for host to start the game...</div>
+
+    <button class="btn btn-outline" onclick="leaveRoom()" style="margin-top:10px;">← Leave Room</button>
+  </div>
+</div>
+
+<!-- ===== GAME SCREEN ===== -->
+<div class="screen" id="gameScreen">
+  <div class="game-layout">
+    <!-- Main game -->
+    <div style="flex:1;min-width:0;">
+      <div class="game-header">
+        <div>
+          <span style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:var(--accent5);">🧠 Brain Snatch!</span>
+          <div style="font-size:0.82rem;color:var(--muted);margin-top:2px;">Q <span id="qNum">1</span> / <span id="qTotal">10</span></div>
+        </div>
+        <div class="timer-display" id="timerDisplay">20</div>
+        <div class="score-board">
+          <div class="score-chip">You: <span id="myScore">0</span> pts</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+
+      <div class="question-card">
+        <div class="question-category" id="qCategory">MIXED</div>
+        <div class="question-text" id="qText">Loading question...</div>
+        <div class="options-grid" id="optionsGrid"></div>
+      </div>
+
+      <div class="feedback-banner" id="feedbackBanner"></div>
+
+      <!-- In-game chat -->
+      <div style="margin-top:14px;">
+        <div class="chat-box" id="gameChat" style="height:90px;"></div>
+        <div class="chat-input-row">
+          <input type="text" id="gameChatInput" placeholder="Chat..." maxlength="80" onkeydown="if(event.key==='Enter')sendChat('game')">
+          <button class="chat-send" onclick="sendChat('game')">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h3>🏆 Players</h3>
+      <div id="gameSidebar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULTS SCREEN ===== -->
+<div class="screen" id="resultsScreen">
+  <div class="card" style="max-width:560px">
+    <div class="winner-banner">🏆 Game Over!</div>
+    <p style="text-align:center;color:var(--muted);margin:6px 0 16px;font-size:0.9rem;">Final Standings</p>
+
+    <div class="podium" id="podium"></div>
+
+    <table class="results-table" id="resultsTable">
+      <thead><tr><th>#</th><th>Player</th><th>Score</th><th>Correct</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="returnToLobby()">🏠 Lobby</button>
+      <button class="btn btn-yellow" onclick="playAgain()">🔄 Play Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div class="screen" id="adminScreen">
+  <div class="admin-header">
+    <h1>⚙️ Admin Panel</h1>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span class="badge badge-admin">ADMIN: SHAH</span>
+      <button class="btn btn-outline btn-sm" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="admin-grid">
+
+    <!-- Stats -->
+    <div class="admin-card">
+      <h3>📊 Live Stats</h3>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num" id="adminOnline">0</div><div class="stat-label">Online</div></div>
+        <div class="stat-box"><div class="stat-num" id="adminRooms">0</div><div class="stat-label">Rooms</div></div>
+        <div class="stat-box"><div class="stat-num" id="adminInGame">0</div><div class="stat-label">In Game</div></div>
+        <div class="stat-box"><div class="stat-num" id="adminTotal">0</div><div class="stat-label">Total Games</div></div>
+      </div>
+      <button class="btn btn-admin" onclick="adminRefresh()">🔄 Refresh Stats</button>
+    </div>
+
+    <!-- Players -->
+    <div class="admin-card">
+      <h3>👥 Online Players</h3>
+      <div id="adminPlayerList"></div>
+    </div>
+
+    <!-- Rooms -->
+    <div class="admin-card">
+      <h3>🏠 Active Rooms</h3>
+      <div id="adminRoomList"></div>
+      <button class="btn btn-danger btn-sm" onclick="closeAllRooms()" style="margin-top:10px;">⚠️ Close All Rooms</button>
+    </div>
+
+    <!-- Controls -->
+    <div class="admin-card">
+      <h3>🎛️ Game Controls</h3>
+      <div class="toggle-row">
+        <span>Allow new players</span>
+        <label class="toggle"><input type="checkbox" id="toggleAllowPlayers" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Allow room creation</span>
+        <label class="toggle"><input type="checkbox" id="toggleAllowRooms" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Maintenance mode</span>
+        <label class="toggle"><input type="checkbox" id="toggleMaintenance"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-danger" onclick="broadcastMsg()">📢 Broadcast Message</button>
+    </div>
+
+    <!-- Question Editor -->
+    <div class="admin-card" style="grid-column: 1 / -1;">
+      <h3>❓ Add Custom Question</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="input-group">
+          <label>Question</label>
+          <input type="text" id="newQ" placeholder="Enter question...">
+        </div>
+        <div class="input-group">
+          <label>Category</label>
+          <select id="newQCat">
+            <option value="science">Science</option>
+            <option value="history">History</option>
+            <option value="sports">Sports</option>
+            <option value="tech">Technology</option>
+            <option value="pop">Pop Culture</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Option A (Correct)</label>
+          <input type="text" id="newQA" placeholder="Correct answer">
+        </div>
+        <div class="input-group">
+          <label>Option B</label>
+          <input type="text" id="newQB" placeholder="Wrong answer">
+        </div>
+        <div class="input-group">
+          <label>Option C</label>
+          <input type="text" id="newQC" placeholder="Wrong answer">
+        </div>
+        <div class="input-group">
+          <label>Option D</label>
+          <input type="text" id="newQD" placeholder="Wrong answer">
+        </div>
+      </div>
+      <button class="btn btn-success btn-sm" onclick="addCustomQuestion()" style="margin-top:8px;">➕ Add Question</button>
+    </div>
+
+    <!-- BRAIN ROD SPAWNER -->
+    <div class="admin-card" style="grid-column: 1 / -1; border: 2px solid rgba(255,159,28,0.4); background: linear-gradient(135deg, rgba(255,159,28,0.08), rgba(199,125,255,0.08));">
+      <h3 style="color:var(--accent5); font-size:1.4rem;">🧠⚡ Brain Rod Spawner <span style="font-size:0.75rem;color:var(--admin);background:rgba(255,159,28,0.15);padding:3px 10px;border-radius:20px;margin-left:8px;">ADMIN ONLY</span></h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px;">Spawn any character or Brain Rod into any active game room. Only YOU can do this.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:20px;">
+        <div class="input-group">
+          <label>Target Room</label>
+          <select id="spawnRoom">
+            <option value="">-- Select Room --</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Brain Rod Type</label>
+          <select id="spawnType">
+            <option value="golden">🌟 Golden Brain Rod (gives everyone +20 pts)</option>
+            <option value="chaos">🌀 Chaos Rod (scrambles all scores randomly)</option>
+            <option value="freeze">❄️ Freeze Rod (freezes timer for 10 seconds)</option>
+            <option value="double">⚡ Double Rod (doubles next correct answer)</option>
+            <option value="steal">🧲 Mega Steal Rod (steal 15 pts from leader)</option>
+            <option value="bomb">💣 Brain Bomb (halves the leader's score)</option>
+            <option value="ghost">👻 Ghost Rod (makes your score invisible to others)</option>
+            <option value="custom">✨ Custom Character</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Custom Character Name (if custom)</label>
+          <input type="text" id="customCharName" placeholder="e.g. Shah's Shadow 👤">
+        </div>
+        <div class="input-group">
+          <label>Custom Character Power</label>
+          <input type="text" id="customCharPower" placeholder="e.g. Doubles everyone's score!">
+        </div>
+      </div>
+
+      <!-- Brain Rod Characters Gallery -->
+      <div style="margin-bottom:18px;">
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Quick Spawn Characters</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;" id="rodGallery"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-admin btn-sm" onclick="spawnBrainRod()" style="font-size:1rem;padding:10px 24px;">⚡ SPAWN NOW</button>
+        <button class="btn btn-outline btn-sm" onclick="spawnToAll()">🌍 Spawn in ALL Rooms</button>
+        <button class="btn btn-outline btn-sm" onclick="clearAllRods()">🗑️ Clear All Rods</button>
+      </div>
+
+      <!-- Active Rods display -->
+      <div style="margin-top:16px;">
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Active Brain Rods</p>
+        <div id="activeRods" style="display:flex;flex-wrap:wrap;gap:8px;min-height:40px;"></div>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="admin-card" style="grid-column: 1 / -1;">
+      <h3>📋 Activity Log</h3>
+      <div class="log-box" id="adminLog">
+        <div>[System] Admin panel initialized.</div>
+        <div>[System] Welcome back, Shah!</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== GAME STATE =====
+const ADMIN_CREDS = { user: 'shah', pass: 'shah6565' };
+const AVATARS = ['🐱','🦊','🐸','🐧','🦁','🐯','🦄','🐺','🐻','🦋','🐢','🦖','🦅','🐬','🐙'];
+const COLORS = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9f1c','#06d6a0','#ef476f'];
+
+let state = {
+  playerName: '',
+  playerAvatar: '🧠',
+  playerColor: '#4d96ff',
+  isAdmin: false,
+  currentRoom: null,
+  isHost: false,
+  players: {},
+  rooms: {},
+  onlinePlayers: [],
+  gameActive: false,
+  currentQuestion: null,
+  questionIndex: 0,
+  totalQuestions: 10,
+  myScore: 0,
+  answered: false,
+  timer: null,
+  timeLeft: 20,
+  scores: {},
+  correctCounts: {},
+  chatMessages: [],
+  selectedAvatar: '🐱',
+  selectedColor: '#4d96ff',
+  gameSettings: { allowPlayers: true, allowRooms: true, maintenance: false },
+  adminStats: { totalGames: 0 },
+  customQuestions: []
+};
+
+// ===== QUESTION BANK =====
+const QUESTION_BANK = {
+  science: [
+    { q:"What is the chemical symbol for gold?", a:"Au", b:"Ag", c:"Fe", d:"Cu" },
+    { q:"What planet is known as the Red Planet?", a:"Mars", b:"Venus", c:"Jupiter", d:"Saturn" },
+    { q:"What is the powerhouse of the cell?", a:"Mitochondria", b:"Nucleus", c:"Ribosome", d:"Golgi body" },
+    { q:"What gas do plants absorb from the atmosphere?", a:"Carbon Dioxide", b:"Oxygen", c:"Nitrogen", d:"Hydrogen" },
+    { q:"How many bones are in the adult human body?", a:"206", b:"208", c:"195", d:"212" },
+    { q:"What is the speed of light (approx)?", a:"3×10⁸ m/s", b:"3×10⁶ m/s", c:"3×10¹⁰ m/s", d:"3×10⁴ m/s" },
+    { q:"Which element has the atomic number 1?", a:"Hydrogen", b:"Helium", c:"Lithium", d:"Carbon" },
+    { q:"DNA stands for?", a:"Deoxyribonucleic Acid", b:"Diribonucleic Acid", c:"Deoxyribose Acid", d:"Dimethyl Nucleic Acid" },
+    { q:"What is the boiling point of water at sea level?", a:"100°C", b:"90°C", c:"110°C", d:"80°C" },
+    { q:"Which planet has the most moons?", a:"Saturn", b:"Jupiter", c:"Neptune", d:"Uranus" },
+  ],
+  history: [
+    { q:"In what year did World War II end?", a:"1945", b:"1944", c:"1946", d:"1943" },
+    { q:"Who was the first President of the United States?", a:"George Washington", b:"Abraham Lincoln", c:"Thomas Jefferson", d:"John Adams" },
+    { q:"Which ancient wonder was located in Alexandria?", a:"The Lighthouse", b:"The Colossus", c:"The Hanging Gardens", d:"The Statue of Zeus" },
+    { q:"The French Revolution began in which year?", a:"1789", b:"1776", c:"1804", d:"1815" },
+    { q:"Who built the Great Wall of China?", a:"Qin Shi Huang", b:"Kublai Khan", c:"Genghis Khan", d:"Ming Emperor" },
+    { q:"In which year did Pakistan gain independence?", a:"1947", b:"1945", c:"1948", d:"1950" },
+    { q:"The Titanic sank in which year?", a:"1912", b:"1910", c:"1914", d:"1908" },
+    { q:"Who was known as the 'Iron Lady'?", a:"Margaret Thatcher", b:"Angela Merkel", c:"Indira Gandhi", d:"Golda Meir" },
+    { q:"The Berlin Wall fell in?", a:"1989", b:"1991", c:"1987", d:"1993" },
+    { q:"Ancient Rome was founded in approximately?", a:"753 BC", b:"500 BC", c:"1000 BC", d:"300 BC" },
+  ],
+  sports: [
+    { q:"How many players are on a football (soccer) team?", a:"11", b:"10", c:"12", d:"9" },
+    { q:"Which country has won the most FIFA World Cups?", a:"Brazil", b:"Germany", c:"Argentina", d:"Italy" },
+    { q:"In basketball, how many points is a free throw?", a:"1", b:"2", c:"3", d:"4" },
+    { q:"The Olympic Games are held every how many years?", a:"4", b:"2", c:"3", d:"5" },
+    { q:"What sport uses a shuttlecock?", a:"Badminton", b:"Tennis", c:"Squash", d:"Volleyball" },
+    { q:"Wimbledon is associated with which sport?", a:"Tennis", b:"Cricket", c:"Golf", d:"Polo" },
+    { q:"How many holes are in a standard golf course?", a:"18", b:"9", c:"12", d:"24" },
+    { q:"In cricket, how many balls make an over?", a:"6", b:"8", c:"5", d:"10" },
+    { q:"Which country invented cricket?", a:"England", b:"India", c:"Australia", d:"Pakistan" },
+    { q:"The fastest man alive, Usain Bolt, is from?", a:"Jamaica", b:"USA", c:"Trinidad", d:"Kenya" },
+  ],
+  tech: [
+    { q:"Who co-founded Apple Inc?", a:"Steve Jobs", b:"Bill Gates", c:"Mark Zuckerberg", d:"Elon Musk" },
+    { q:"What does CPU stand for?", a:"Central Processing Unit", b:"Computer Processing Unit", c:"Core Processing Unit", d:"Central Program Unit" },
+    { q:"What language is primarily used for web styling?", a:"CSS", b:"Java", c:"Python", d:"Ruby" },
+    { q:"Which company made the first iPhone?", a:"Apple", b:"Samsung", c:"Nokia", d:"Sony" },
+    { q:"What does HTML stand for?", a:"HyperText Markup Language", b:"High Transfer Markup Language", c:"HyperText Management Language", d:"High Text Markup Language" },
+    { q:"Who founded Microsoft?", a:"Bill Gates", b:"Steve Jobs", c:"Larry Page", d:"Jeff Bezos" },
+    { q:"What does RAM stand for?", a:"Random Access Memory", b:"Read Access Memory", c:"Run Access Memory", d:"Random Audio Memory" },
+    { q:"The first computer virus was created in?", a:"1971", b:"1981", c:"1991", d:"1965" },
+    { q:"Python was created by?", a:"Guido van Rossum", b:"Dennis Ritchie", c:"Bjarne Stroustrup", d:"James Gosling" },
+    { q:"What does 'www' stand for?", a:"World Wide Web", b:"World Web Work", c:"Wide World Web", d:"Web World Work" },
+  ],
+  pop: [
+    { q:"Which band sang 'Bohemian Rhapsody'?", a:"Queen", b:"The Beatles", c:"Led Zeppelin", d:"Pink Floyd" },
+    { q:"The movie 'Titanic' (1997) was directed by?", a:"James Cameron", b:"Steven Spielberg", c:"Martin Scorsese", d:"Christopher Nolan" },
+    { q:"Which TV show features dragons and the Iron Throne?", a:"Game of Thrones", b:"The Witcher", c:"Vikings", d:"Outlander" },
+    { q:"Who sang 'Shape of You'?", a:"Ed Sheeran", b:"Justin Bieber", c:"Bruno Mars", d:"Post Malone" },
+    { q:"Harry Potter's school is called?", a:"Hogwarts", b:"Beauxbatons", c:"Durmstrang", d:"Ilvermorny" },
+    { q:"Which Avenger wields a magic hammer?", a:"Thor", b:"Iron Man", c:"Captain America", d:"Hulk" },
+    { q:"Friends ran for how many seasons?", a:"10", b:"8", c:"12", d:"9" },
+    { q:"The Lion King is set in which continent?", a:"Africa", b:"Asia", c:"South America", d:"Australia" },
+    { q:"Who voices Shrek?", a:"Mike Myers", b:"Eddie Murphy", c:"Antonio Banderas", d:"Cameron Diaz" },
+    { q:"Breaking Bad stars which actor as Walter White?", a:"Bryan Cranston", b:"Aaron Paul", c:"Bob Odenkirk", d:"Dean Norris" },
+  ],
+};
+
+// Build mixed pool
+QUESTION_BANK.mixed = Object.values(QUESTION_BANK).flat().sort(() => Math.random() - 0.5);
+
+// ===== STORAGE (simulate persistence with localStorage) =====
+function saveState() {
+  try {
+    localStorage.setItem('brainSnatch_rooms', JSON.stringify(state.rooms));
+    localStorage.setItem('brainSnatch_players', JSON.stringify(state.players));
+    localStorage.setItem('brainSnatch_stats', JSON.stringify(state.adminStats));
+    localStorage.setItem('brainSnatch_customQ', JSON.stringify(state.customQuestions));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const rooms = localStorage.getItem('brainSnatch_rooms');
+    if (rooms) state.rooms = JSON.parse(rooms);
+    const players = localStorage.getItem('brainSnatch_players');
+    if (players) state.players = JSON.parse(players);
+    const stats = localStorage.getItem('brainSnatch_stats');
+    if (stats) state.adminStats = JSON.parse(stats);
+    const customQ = localStorage.getItem('brainSnatch_customQ');
+    if (customQ) state.customQuestions = JSON.parse(customQ);
+  } catch(e) {}
+  // Clean stale rooms (older than 2 hours)
+  const now = Date.now();
+  for (const id in state.rooms) {
+    if (state.rooms[id].createdAt && now - state.rooms[id].createdAt > 7200000) {
+      delete state.rooms[id];
+    }
+  }
+  // Clean stale players (offline > 30min)
+  for (const id in state.players) {
+    if (state.players[id].lastSeen && now - state.players[id].lastSeen > 1800000) {
+      delete state.players[id];
+    }
+  }
+  saveState();
+}
+
+// ===== INIT =====
+let myPlayerId = null;
+let pollInterval = null;
+let gameQuestions = [];
+let questionTimer = null;
+
+function init() {
+  loadState();
+  buildAvatarPicker();
+  buildRodGallery();
+  updateOnlineCount();
+  setInterval(() => { updateOnlineCount(); }, 5000);
+  setInterval(() => { checkForRods(); }, 2500);
+}
+
+function buildAvatarPicker() {
+  const wrap = document.getElementById('avatarPicker');
+  AVATARS.forEach((a, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = a;
+    btn.style.cssText = `font-size:1.5rem;background:rgba(255,255,255,0.06);border:2px solid transparent;border-radius:10px;padding:6px 10px;cursor:pointer;transition:all 0.2s;`;
+    btn.onclick = () => {
+      wrap.querySelectorAll('button').forEach(b => b.style.borderColor = 'transparent');
+      btn.style.borderColor = '#4d96ff';
+      state.selectedAvatar = a;
+      state.selectedColor = COLORS[i % COLORS.length];
+    };
+    if (i === 0) { btn.style.borderColor = '#4d96ff'; state.selectedAvatar = a; state.selectedColor = COLORS[0]; }
+    wrap.appendChild(btn);
+  });
+}
+
+function updateOnlineCount() {
+  // Update player heartbeat
+  if (myPlayerId && state.players[myPlayerId]) {
+    state.players[myPlayerId].lastSeen = Date.now();
+    saveState();
+  }
+  // Count active players (seen in last 2 min)
+  const now = Date.now();
+  const count = Object.values(state.players).filter(p => now - (p.lastSeen || 0) < 120000).length;
+  document.getElementById('onlineCount').textContent = count;
+  const oc2 = document.getElementById('onlineCount2');
+  if (oc2) oc2.textContent = count;
+}
+
+// ===== SCREEN NAV =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function checkAdminLogin() { showScreen('adminLoginScreen'); }
+
+// ===== PLAYER LOGIN =====
+function joinAsPlayer() {
+  const name = document.getElementById('playerName').value.trim();
+  if (!name) { showNotif('Enter a nickname!', true); return; }
+  if (name.toLowerCase() === 'shah') { showNotif('That name is reserved for admin!', true); return; }
+
+  myPlayerId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+  state.playerName = name;
+  state.playerAvatar = state.selectedAvatar;
+  state.playerColor = state.selectedColor;
+
+  state.players[myPlayerId] = {
+    id: myPlayerId,
+    name,
+    avatar: state.selectedAvatar,
+    color: state.selectedColor,
+    lastSeen: Date.now(),
+    score: 0
+  };
+  saveState();
+  document.getElementById('lobbyPlayerName').textContent = name;
+  showScreen('lobbyScreen');
+  refreshRooms();
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(() => {
+    updateOnlineCount();
+    if (state.currentRoom) pollRoom();
+  }, 2000);
+}
+
+function logout() {
+  if (myPlayerId) { delete state.players[myPlayerId]; saveState(); }
+  myPlayerId = null;
+  state.currentRoom = null;
+  state.isHost = false;
+  clearInterval(pollInterval);
+  showScreen('homeScreen');
+}
+
+// ===== ADMIN LOGIN =====
+function loginAdmin() {
+  const u = document.getElementById('adminUser').value.trim();
+  const p = document.getElementById('adminPass').value;
+  if (u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass) {
+    state.isAdmin = true;
+    showScreen('adminScreen');
+    adminRefresh();
+    showNotif('Welcome back, Shah! 🎉');
+    // Start admin polling
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(adminRefresh, 3000);
+  } else {
+    showNotif('Wrong credentials!', true);
+    document.getElementById('adminUser').style.borderColor = '#ff6b6b';
+    document.getElementById('adminPass').style.borderColor = '#ff6b6b';
+    setTimeout(() => {
+      document.getElementById('adminUser').style.borderColor = '';
+      document.getElementById('adminPass').style.borderColor = '';
+    }, 1500);
+  }
+}
+
+function adminLogout() {
+  state.isAdmin = false;
+  clearInterval(pollInterval);
+  showScreen('homeScreen');
+}
+
+// ===== LOBBY =====
+function showCreateRoom() {
+  const form = document.getElementById('createRoomForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function createRoom() {
+  if (!myPlayerId) return;
+  const name = document.getElementById('roomName').value.trim() || (state.playerName + "'s Room");
+  const maxP = parseInt(document.getElementById('roomMaxPlayers').value);
+  const qCount = parseInt(document.getElementById('roomQCount').value);
+  const cat = document.getElementById('roomCategory').value;
+
+  const roomId = 'r_' + Date.now();
+  state.rooms[roomId] = {
+    id: roomId,
+    name,
+    host: myPlayerId,
+    hostName: state.playerName,
+    maxPlayers: maxP,
+    questionCount: qCount,
+    category: cat,
+    status: 'open',
+    players: { [myPlayerId]: { id: myPlayerId, name: state.playerName, avatar: state.playerAvatar, color: state.playerColor, score: 0, correct: 0 } },
+    chat: [{ author: '🤖 System', msg: `${state.playerName} created the room!`, system: true, time: Date.now() }],
+    createdAt: Date.now(),
+    gameStarted: false
+  };
+  saveState();
+  document.getElementById('createRoomForm').style.display = 'none';
+  joinRoom(roomId);
+}
+
+function joinRoom(roomId) {
+  loadState();
+  const room = state.rooms[roomId];
+  if (!room) { showNotif('Room not found!', true); return; }
+  if (room.status === 'full') { showNotif('Room is full!', true); return; }
+  if (room.status === 'playing') { showNotif('Game already in progress!', true); return; }
+
+  const playerCount = Object.keys(room.players).length;
+  if (playerCount >= room.maxPlayers) { showNotif('Room is full!', true); return; }
+
+  // Add player to room
+  if (!room.players[myPlayerId]) {
+    room.players[myPlayerId] = { id: myPlayerId, name: state.playerName, avatar: state.playerAvatar, color: state.playerColor, score: 0, correct: 0 };
+    room.chat.push({ author: '🤖 System', msg: `${state.playerName} joined!`, system: true, time: Date.now() });
+    if (Object.keys(room.players).length >= room.maxPlayers) room.status = 'full';
+    saveState();
+  }
+
+  state.currentRoom = roomId;
+  state.isHost = (room.host === myPlayerId);
+  showWaitingRoom(roomId);
+}
+
+function showWaitingRoom(roomId) {
+  loadState();
+  const room = state.rooms[roomId];
+  if (!room) return;
+  document.getElementById('waitRoomName').textContent = room.name;
+  document.getElementById('waitRoomCode').textContent = room.id;
+  document.getElementById('waitQCount').textContent = room.questionCount;
+  document.getElementById('waitCategory').textContent = room.category.charAt(0).toUpperCase() + room.category.slice(1);
+  document.getElementById('hostControls').style.display = state.isHost ? 'block' : 'none';
+  document.getElementById('waitingMsg').style.display = state.isHost ? 'none' : 'block';
+  renderWaitingPlayers(room);
+  renderWaitChat(room);
+  showScreen('waitingScreen');
+}
+
+function renderWaitingPlayers(room) {
+  const wrap = document.getElementById('waitingPlayers');
+  wrap.innerHTML = '';
+  const slots = Math.max(Object.keys(room.players).length + 1, 4);
+  const maxShow = Math.min(slots, room.maxPlayers);
+  Object.values(room.players).forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'player-slot filled';
+    const isMe = p.id === myPlayerId;
+    const isHost = p.id === room.host;
+    div.innerHTML = `
+      <div class="avatar" style="background:${p.color}22;border:2px solid ${p.color};">${p.avatar}</div>
+      <div class="pname">${p.name} ${isMe ? '<span class="badge badge-you">YOU</span>' : ''}</div>
+      <div class="prole" style="color:${p.color}">${isHost ? '👑 Host' : 'Player'}</div>
+    `;
+    wrap.appendChild(div);
+  });
+  // Empty slots
+  for (let i = Object.keys(room.players).length; i < maxShow; i++) {
+    const div = document.createElement('div');
+    div.className = 'player-slot';
+    div.innerHTML = `<div style="color:var(--muted);font-size:0.82rem;">Waiting...</div>`;
+    wrap.appendChild(div);
+  }
+}
+
+function renderWaitChat(room) {
+  const box = document.getElementById('waitChat');
+  if (!box) return;
+  box.innerHTML = '';
+  (room.chat || []).slice(-30).forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'chat-msg' + (m.system ? ' system' : '');
+    div.innerHTML = `<span class="chat-author">${m.author}:</span> ${sanitize(m.msg)}`;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendChat(context) {
+  const inputId = context === 'wait' ? 'waitChatInput' : 'gameChatInput';
+  const boxId = context === 'wait' ? 'waitChat' : 'gameChat';
+  const input = document.getElementById(inputId);
+  const msg = input.value.trim();
+  if (!msg || !state.currentRoom) return;
+  input.value = '';
+  loadState();
+  const room = state.rooms[state.currentRoom];
+  if (!room) return;
+  if (!room.chat) room.chat = [];
+  room.chat.push({ author: state.playerAvatar + ' ' + state.playerName, msg, time: Date.now() });
+  if (room.chat.length > 100) room.chat = room.chat.slice(-50);
+  saveState();
+  renderWaitChat(room);
+  if (context === 'game') renderGameChat(room);
+}
+
+function renderGameChat(room) {
+  const box = document.getElementById('gameChat');
+  if (!box) return;
+  box.innerHTML = '';
+  (room.chat || []).slice(-20).forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'chat-msg' + (m.system ? ' system' : '');
+    div.innerHTML = `<span class="chat-author">${m.author}:</span> ${sanitize(m.msg)}`;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function sanitize(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function leaveRoom() {
+  if (!state.currentRoom || !myPlayerId) { showScreen('lobbyScreen'); return; }
+  loadState();
+  const room = state.rooms[state.currentRoom];
+  if (room) {
+    delete room.players[myPlayerId];
+    room.chat.push({ author: '🤖 System', msg: `${state.playerName} left the room.`, system: true, time: Date.now() });
+    if (Object.keys(room.players).length === 0) delete state.rooms[state.currentRoom];
+    else if (room.host === myPlayerId) {
+      const remaining = Object.keys(room.players);
+      if (remaining.length > 0) { room.host = remaining[0]; room.players[remaining[0]].isHost = true; }
+    }
+    if (room.status === 'full') room.status = 'open';
+    saveState();
+  }
+  state.currentRoom = null;
+  state.isHost = false;
+  clearGameTimer();
+  showScreen('lobbyScreen');
+  refreshRooms();
+}
+
+function refreshRooms() {
+  loadState();
+  const list = document.getElementById('roomList');
+  const noRooms = document.getElementById('noRooms');
+  list.innerHTML = '';
+  const rooms = Object.values(state.rooms).filter(r => !r.gameEnded);
+  if (rooms.length === 0) {
+    noRooms.style.display = 'block';
+    return;
+  }
+  noRooms.style.display = 'none';
+  rooms.sort((a, b) => b.createdAt - a.createdAt).forEach(room => {
+    const pCount = Object.keys(room.players).length;
+    const isFull = pCount >= room.maxPlayers;
+    const isPlaying = room.gameStarted && !room.gameEnded;
+    let statusClass = 'open', statusText = 'Join';
+    if (isPlaying) { statusClass = 'playing'; statusText = 'In Game'; }
+    if (isFull) { statusClass = 'full'; statusText = 'Full'; }
+    const div = document.createElement('div');
+    div.className = 'room-card';
+    div.innerHTML = `
+      <div class="room-info">
+        <h3>${sanitize(room.name)}</h3>
+        <p>👑 ${sanitize(room.hostName)} &nbsp;|&nbsp; 👥 ${pCount}/${room.maxPlayers} &nbsp;|&nbsp; ❓ ${room.questionCount}q &nbsp;|&nbsp; 🎯 ${room.category}</p>
+      </div>
+      <span class="room-status ${statusClass}">${statusText}</span>
+    `;
+    if (!isPlaying && !isFull) div.onclick = () => joinRoom(room.id);
+    list.appendChild(div);
+  });
+}
+
+// ===== POLL ROOM (simulate real-time via localStorage polling) =====
+function pollRoom() {
+  if (!state.currentRoom) return;
+  loadState();
+  const room = state.rooms[state.currentRoom];
+  if (!room) { leaveRoom(); return; }
+
+  const screenId = document.querySelector('.screen.active')?.id;
+
+  // Update heartbeat
+  if (room.players[myPlayerId]) {
+    room.players[myPlayerId].lastSeen = Date.now();
+    saveState();
+  }
+
+  if (screenId === 'waitingScreen') {
+    renderWaitingPlayers(room);
+    renderWaitChat(room);
+    // Check if game started
+    if (room.gameStarted && !state.gameActive) {
+      startGameClient(room);
+    }
+  }
+
+  if (screenId === 'gameScreen' && state.gameActive) {
+    renderGameSidebar(room);
+    renderGameChat(room);
+    // Check for game over
+    if (room.gameEnded && state.gameActive) {
+      endGame(room);
+    }
+    // Check for question advance
+    if (room.currentQIndex !== undefined && room.currentQIndex !== state.questionIndex && !state.answered) {
+      state.questionIndex = room.currentQIndex;
+      loadQuestion();
+    }
+  }
+}
+
+// ===== GAME =====
+function startGame() {
+  if (!state.isHost || !state.currentRoom) return;
+  loadState();
+  const room = state.rooms[state.currentRoom];
+  if (!room) return;
+  const pCount = Object.keys(room.players).length;
+  if (pCount < 1) { showNotif('Need at least 1 player!', true); return; }
+
+  // Build question set
+  const pool = [...(QUESTION_BANK[room.category] || QUESTION_BANK.mixed), ...state.customQuestions.filter(q => !room.category || room.category === 'mixed' || q.cat === room.category)];
+  const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, room.questionCount);
+  room.questions = shuffled;
+  room.gameStarted = true;
+  room.gameEnded = false;
+  room.currentQIndex = 0;
+  room.status = 'playing';
+  room.chat.push({ author: '🤖 System', msg: '🚀 Game started! Good luck everyone!', system: true, time: Date.now() });
+  // Init scores
+  Object.keys(room.players).forEach(pid => { room.players[pid].score = 0; room.players[pid].correct = 0; });
+  room.qStartTime = Date.now();
+  saveState();
+  state.adminStats.totalGames++;
+  saveState();
+  startGameClient(room);
+}
+
+function startGameClient(room) {
+  state.gameActive = true;
+  state.questionIndex = room.currentQIndex || 0;
+  state.totalQuestions = room.questions.length;
+  state.myScore = 0;
+  state.answered = false;
+  gameQuestions = room.questions;
+  document.getElementById('qTotal').textContent = state.totalQuestions;
+  showScreen('gameScreen');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (!state.currentRoom) return;
+  loadState();
+  const room = state.rooms[state.currentRoom];
+  if (!room || !room.questions) return;
+
+  const qi = state.questionIndex;
+  if (qi >= room.questions.length) { endGame(room); return; }
+  const q = room.questions[qi];
+  state.currentQuestion = q;
+  state.answered = false;
+  state.timeLeft = 20;
+
+  document.getElementById('qNum').textContent = qi + 1;
+  document.getElementById('qCategory').textContent = (room.category || 'mixed').toUpperCase();
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('progressFill').style.width = ((qi / room.questions.length) * 100) + '%';
+
+  // Shuffle options
+  const opts = [
+    { text: q.a, correct: true },
+    { text: q.b, correct: false },
+    { text: q.c, correct: false },
+    { text: q.d, correct: false },
+  ].sort(() => Math.random() - 0.5);
+
+  const letters = ['A','B','C','D'];
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.dataset.correct = opt.correct;
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span> ${sanitize(opt.text)}`;
+    btn.onclick = () => handleAnswer(btn, opt.correct);
+    grid.appendChild(btn);
+  });
+
+  const fb = document.getElementById('feedbackBanner');
+  fb.className = 'feedback-banner';
+  fb.textContent = '';
+
+  clearGameTimer();
+  startTimer();
+}
+
+function startTimer() {
+  const display = document.getElementById('timerDisplay');
+  display.className = 'timer-display';
+  state.timeLeft = 20;
+  display.textContent = state.timeLeft;
+  questionTimer = setInterval(() => {
+    state.timeLeft--;
+    display.textContent = state.timeLeft;
+    if (state.timeLeft <= 5) display.className = 'timer-display danger';
+    if (state.timeLeft <= 0) {
+      clearGameTimer();
+      if (!state.answered) {
+        state.answered = true;
+        // Show correct answer
+        document.querySelectorAll('.option-btn').forEach(btn => {
+          btn.disabled = true;
+          if (btn.dataset.correct === 'true') btn.classList.add('correct');
+        });
+        showFeedback(false, "⏰ Time's up!");
+        setTimeout(advanceQuestion, 2500);
+      }
+    }
+  }, 1000);
+}
+
+function clearGameTimer() {
+  if (questionTimer) { clearInterval(questionTimer); questionTimer = null; }
+}
+
+function handleAnswer(btn, correct) {
+  if (state.answered) return;
+  state.answered = true;
+  clearGameTimer();
+
+  document.querySelectorAll('.option-btn').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+  });
+
+  if (correct) {
+    btn.classList.add('selected');
+    const bonus = Math.floor(state.timeLeft * 0.5);
+    const pts = 10 + bonus;
+    state.myScore += pts;
+    document.getElementById('myScore').textContent = state.myScore;
+
+    // Update room scores
+    loadState();
+    const room = state.rooms[state.currentRoom];
+    if (room && room.players[myPlayerId]) {
+      room.players[myPlayerId].score = state.myScore;
+      room.players[myPlayerId].correct = (room.players[myPlayerId].correct || 0) + 1;
+
+      // Brain Snatch mechanic — steal from leader
+      const scores = Object.values(room.players).map(p => ({ id: p.id, score: p.score || 0 })).sort((a,b) => b.score - a.score);
+      if (scores.length > 1 && scores[0].id !== myPlayerId && scores[0].score > 0) {
+        const leader = room.players[scores[0].id];
+        if (leader && state.myScore > leader.score) {
+          const stolen = 5;
+          leader.score = Math.max(0, (leader.score || 0) - stolen);
+          room.chat.push({ author: '🧲 System', msg: `🧠 BRAIN SNATCH! ${state.playerName} stole ${stolen} pts from ${leader.name}!`, system: true, time: Date.now() });
+          showFeedback(true, `+${pts} pts (+${bonus} speed bonus) 🧠 BRAIN SNATCH! Stole 5 pts!`);
+        } else {
+          showFeedback(true, `+${pts} pts (+${bonus} speed bonus)`);
+        }
+      } else {
+        showFeedback(true, `+${pts} pts (+${bonus} speed bonus) 🎯`);
+      }
+      saveState();
+    }
+  } else {
+    btn.classList.add('wrong');
+    showFeedback(false, "❌ Wrong! Better luck next time!");
+  }
+
+  renderGameSidebar(state.rooms[state.currentRoom] || {});
+  setTimeout(advanceQuestion, 2500);
+}
+
+function showFeedback(correct, msg) {
+  const fb = document.getElementById('feedbackBanner');
+  fb.textContent = msg;
+  fb.className = 'feedback-banner show ' + (correct ? 'correct-fb' : 'wrong-fb');
+}
+
+function advanceQuestion() {
+  state.questionIndex++;
+  loadState();
+  const room = state.rooms[state.currentRoom];
+
+  if (!room || state.questionIndex >= (room.questions || []).length) {
+    // End game
+    if (room && state.isHost) {
+      room.gameEnded = true;
+      room.status = 'open';
+      room.gameStarted = false;
+      saveState();
+    }
+    setTimeout(() => {
+      loadState();
+      endGame(state.rooms[state.currentRoom] || {});
+    }, 500);
+  } else {
+    // Host advances question index for all
+    if (state.isHost && room) {
+      room.currentQIndex = state.questionIndex;
+      room.qStartTime = Date.now();
+      saveState();
+    }
+    loadQuestion();
+  }
+}
+
+function renderGameSidebar(room) {
+  const wrap = document.getElementById('gameSidebar');
+  if (!wrap) return;
+  const players = Object.values(room.players || {}).sort((a,b) => (b.score||0) - (a.score||0));
+  wrap.innerHTML = '';
+  players.forEach(p => {
+    const isMe = p.id === myPlayerId;
+    const div = document.createElement('div');
+    div.className = 'sidebar-player' + (isMe ? ' me' : '');
+    div.innerHTML = `
+      <div class="mini-avatar" style="background:${p.color}22;border:2px solid ${p.color};">${p.avatar}</div>
+      <div class="pinfo">
+        <div class="pname2">${sanitize(p.name)} ${isMe ? '(you)' : ''}</div>
+        <div class="pscore">${p.score||0} pts</div>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function endGame(room) {
+  state.gameActive = false;
+  clearGameTimer();
+  showConfetti();
+
+  const players = Object.values(room.players || {}).sort((a,b) => (b.score||0) - (a.score||0));
+
+  // Podium
+  const podium = document.getElementById('podium');
+  podium.innerHTML = '';
+  const places = [1,0,2]; // 2nd, 1st, 3rd display order for podium
+  places.forEach((pi, di) => {
+    const p = players[pi];
+    if (!p) return;
+    const div = document.createElement('div');
+    div.className = `podium-place p${pi+1}`;
+    div.innerHTML = `
+      <div class="podium-name">${sanitize(p.name)}</div>
+      <div class="podium-pts">${p.score||0} pts</div>
+      <div class="podium-avatar">${p.avatar}</div>
+      <div class="podium-block">#${pi+1}</div>
+    `;
+    podium.appendChild(div);
+  });
+
+  // Table
+  const tbody = document.querySelector('#resultsTable tbody');
+  tbody.innerHTML = '';
+  players.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    const isMe = p.id === myPlayerId;
+    tr.innerHTML = `
+      <td>${['🥇','🥈','🥉'][i] || (i+1)}</td>
+      <td>${p.avatar} ${sanitize(p.name)} ${isMe ? '<span class="badge badge-you">YOU</span>' : ''}</td>
+      <td style="color:var(--accent4);font-weight:700;">${p.score||0}</td>
+      <td>${p.correct||0} ✓</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  showScreen('resultsScreen');
+}
+
+function returnToLobby() {
+  state.gameActive = false;
+  clearGameTimer();
+  state.currentRoom = null;
+  state.isHost = false;
+  showScreen('lobbyScreen');
+  refreshRooms();
+}
+
+function playAgain() {
+  if (!state.currentRoom) { returnToLobby(); return; }
+  loadState();
+  const room = state.rooms[state.currentRoom];
+  if (!room) { returnToLobby(); return; }
+  room.gameStarted = false;
+  room.gameEnded = false;
+  room.currentQIndex = 0;
+  room.questions = null;
+  Object.keys(room.players).forEach(pid => { room.players[pid].score = 0; room.players[pid].correct = 0; });
+  saveState();
+  showWaitingRoom(state.currentRoom);
+}
+
+// ===== ADMIN PANEL =====
+function adminRefresh() {
+  loadState();
+  refreshSpawnRoomList();
+  renderActiveRods();
+  const now = Date.now();
+  const onlinePlayers = Object.values(state.players).filter(p => now - (p.lastSeen||0) < 120000);
+  const rooms = Object.values(state.rooms);
+  const inGame = rooms.filter(r => r.gameStarted && !r.gameEnded).length;
+
+  document.getElementById('adminOnline').textContent = onlinePlayers.length;
+  document.getElementById('adminRooms').textContent = rooms.length;
+  document.getElementById('adminInGame').textContent = inGame;
+  document.getElementById('adminTotal').textContent = state.adminStats.totalGames || 0;
+
+  // Player list
+  const pl = document.getElementById('adminPlayerList');
+  pl.innerHTML = '';
+  if (onlinePlayers.length === 0) {
+    pl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No players online</p>';
+  } else {
+    onlinePlayers.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'player-row';
+      div.innerHTML = `
+        <span>${p.avatar} ${sanitize(p.name)}</span>
+        <button class="kick-btn" onclick="kickPlayer('${p.id}')">Kick</button>
+      `;
+      pl.appendChild(div);
+    });
+  }
+
+  // Room list
+  const rl = document.getElementById('adminRoomList');
+  rl.innerHTML = '';
+  if (rooms.length === 0) {
+    rl.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No active rooms</p>';
+  } else {
+    rooms.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'player-row';
+      const pCount = Object.keys(r.players||{}).length;
+      div.innerHTML = `
+        <span style="font-size:0.82rem;">${sanitize(r.name)} (${pCount}/${r.maxPlayers})</span>
+        <button class="kick-btn" onclick="closeRoom('${r.id}')">Close</button>
+      `;
+      rl.appendChild(div);
+    });
+  }
+}
+
+function kickPlayer(pid) {
+  loadState();
+  if (state.players[pid]) {
+    const name = state.players[pid].name;
+    delete state.players[pid];
+    // Remove from rooms
+    Object.values(state.rooms).forEach(r => { delete r.players[pid]; });
+    saveState();
+    adminLog(`[Kick] Player "${name}" has been kicked.`);
+    adminRefresh();
+    showNotif(`Kicked ${name}`);
+  }
+}
+
+function closeRoom(rid) {
+  loadState();
+  if (state.rooms[rid]) {
+    const name = state.rooms[rid].name;
+    delete state.rooms[rid];
+    saveState();
+    adminLog(`[Room] Room "${name}" closed by admin.`);
+    adminRefresh();
+    showNotif(`Room closed: ${name}`);
+  }
+}
+
+function closeAllRooms() {
+  if (!confirm('Close ALL rooms? This will end all games!')) return;
+  loadState();
+  state.rooms = {};
+  saveState();
+  adminLog('[Admin] All rooms closed.');
+  adminRefresh();
+  showNotif('All rooms closed!');
+}
+
+function broadcastMsg() {
+  const msg = prompt('Enter broadcast message for all players:');
+  if (!msg) return;
+  loadState();
+  Object.values(state.rooms).forEach(r => {
+    if (!r.chat) r.chat = [];
+    r.chat.push({ author: '📢 ADMIN', msg: sanitize(msg), system: true, time: Date.now() });
+  });
+  saveState();
+  adminLog(`[Broadcast] "${msg}"`);
+  showNotif('Message broadcasted!');
+}
+
+function addCustomQuestion() {
+  const q = document.getElementById('newQ').value.trim();
+  const a = document.getElementById('newQA').value.trim();
+  const b = document.getElementById('newQB').value.trim();
+  const c = document.getElementById('newQC').value.trim();
+  const d = document.getElementById('newQD').value.trim();
+  const cat = document.getElementById('newQCat').value;
+  if (!q||!a||!b||!c||!d) { showNotif('Fill all fields!', true); return; }
+  state.customQuestions.push({ q, a, b, c, d, cat });
+  saveState();
+  adminLog(`[Question] Added: "${q.substring(0,40)}..."`);
+  showNotif('Question added!');
+  ['newQ','newQA','newQB','newQC','newQD'].forEach(id => document.getElementById(id).value = '');
+}
+
+function adminLog(msg) {
+  const log = document.getElementById('adminLog');
+  if (!log) return;
+  const div = document.createElement('div');
+  const time = new Date().toLocaleTimeString();
+  div.textContent = `[${time}] ${msg}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ===== CONFETTI =====
+function showConfetti() {
+  const wrap = document.getElementById('confettiWrap');
+  wrap.innerHTML = '';
+  const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9f1c'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left: ${Math.random()*100}%;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      width: ${6+Math.random()*10}px;
+      height: ${6+Math.random()*10}px;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      animation-duration: ${2+Math.random()*3}s;
+      animation-delay: ${Math.random()*2}s;
+    `;
+    wrap.appendChild(el);
+  }
+  setTimeout(() => { wrap.innerHTML = ''; }, 5000);
+}
+
+// ===== NOTIFICATION =====
+function showNotif(msg, isErr = false) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.className = 'notif show' + (isErr ? ' err' : '');
+  setTimeout(() => { n.className = 'notif'; }, 3000);
+}
+
+// ===== BRAIN RODS =====
+const BRAIN_RODS = [
+  { id:'golden',   emoji:'🌟', name:'Golden Rod',    desc:'Admin blesses everyone with +20 pts!',          effect: (room) => { Object.values(room.players).forEach(p => p.score = (p.score||0)+20); return '+20 pts for ALL players!'; } },
+  { id:'chaos',    emoji:'🌀', name:'Chaos Rod',     desc:'Scores are scrambled randomly!',                effect: (room) => { const scores = Object.values(room.players).map(p=>p.score||0).sort(()=>Math.random()-0.5); Object.values(room.players).forEach((p,i)=>p.score=scores[i]); return 'All scores shuffled!'; } },
+  { id:'freeze',   emoji:'❄️', name:'Freeze Rod',    desc:'Timer is frozen for 10 seconds!',               effect: (room) => { room.frozenUntil = Date.now()+10000; return 'Timer frozen for 10s!'; } },
+  { id:'double',   emoji:'⚡', name:'Double Rod',    desc:'Next correct answer is worth double!',          effect: (room) => { room.doubleNext = true; return 'Next correct answer = 2x points!'; } },
+  { id:'steal',    emoji:'🧲', name:'Mega Steal Rod',desc:'Steal 15 pts from the leader!',                 effect: (room) => { const players = Object.values(room.players).sort((a,b)=>(b.score||0)-(a.score||0)); if(players.length>1){players[0].score=Math.max(0,(players[0].score||0)-15);} return '15 pts stolen from the leader!'; } },
+  { id:'bomb',     emoji:'💣', name:'Brain Bomb',    desc:"Leader's score is cut in half!",                effect: (room) => { const players = Object.values(room.players).sort((a,b)=>(b.score||0)-(a.score||0)); if(players[0]) players[0].score = Math.floor((players[0].score||0)/2); return "Leader's score halved!"; } },
+  { id:'ghost',    emoji:'👻', name:'Ghost Rod',     desc:'Your score is hidden from others for 30s!',     effect: (room) => { room.ghostUntil = Date.now()+30000; return 'Scores hidden from rivals for 30s!'; } },
+  { id:'rainbow',  emoji:'🌈', name:'Rainbow Rod',   desc:'Everyone gets a random score boost 5-25 pts!',  effect: (room) => { Object.values(room.players).forEach(p=>p.score=(p.score||0)+Math.floor(Math.random()*21+5)); return 'Random +5 to +25 pts for everyone!'; } },
+  { id:'reverse',  emoji:'🔄', name:'Reverse Rod',   desc:'Scores are reversed — last becomes first!',     effect: (room) => { const max = Math.max(...Object.values(room.players).map(p=>p.score||0)); Object.values(room.players).forEach(p=>p.score=Math.max(0,max-(p.score||0))); return 'Score order reversed!'; } },
+  { id:'shah',     emoji:'👑', name:"Shah's Crown",  desc:'The developer blesses the lowest-scoring player!', effect:(room)=>{ const players=Object.values(room.players).sort((a,b)=>(a.score||0)-(b.score||0)); if(players[0])players[0].score=(players[0].score||0)+30; return 'Lowest player gets +30 pts from Shah!'; } },
+  { id:'thunder',  emoji:'⚡', name:'Thunder Rod',   desc:'All scores reset to 0!',                        effect: (room) => { Object.values(room.players).forEach(p=>p.score=0); return 'All scores wiped to zero!'; } },
+  { id:'mirror',   emoji:'🪞', name:'Mirror Rod',    desc:'Top and bottom scores swap!',                   effect: (room) => { const players=Object.values(room.players).sort((a,b)=>(b.score||0)-(a.score||0)); if(players.length>1){const tmp=players[0].score;players[0].score=players[players.length-1].score;players[players.length-1].score=tmp;} return 'Top and bottom scores swapped!'; } },
 ];
 
-// 2. CORE VARIABLES
-let scene, camera, renderer, clock;
-let player, playerVelocity = new THREE.Vector3();
-let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, canJump = false;
-let spawnedItems = [];
-let inventory = [];
-
-// 3. INITIALIZATION
-function init() {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87ceeb); // Sky Blue
-    scene.fog = new THREE.Fog(0x87ceeb, 0, 100);
-
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    document.body.appendChild(renderer.domElement);
-
-    clock = new THREE.Clock();
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-
-    const sun = new THREE.DirectionalLight(0xffffff, 1);
-    sun.position.set(10, 20, 10);
-    sun.castShadow = true;
-    scene.add(sun);
-
-    // Floor (The Baseplate)
-    const floorGeo = new THREE.PlaneGeometry(200, 200);
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    // Grid Helper (Roblox style)
-    const grid = new THREE.GridHelper(200, 50, 0x00a2ff, 0x444444);
-    scene.add(grid);
-
-    // Player Character
-    const playerGeo = new THREE.BoxGeometry(1, 2, 1);
-    const playerMat = new THREE.MeshStandardMaterial({ color: 0x00a2ff });
-    player = new THREE.Mesh(playerGeo, playerMat);
-    player.position.y = 1;
-    player.castShadow = true;
-    scene.add(player);
-
-    // Initial Spawning of items
-    for(let i=0; i<15; i++) {
-        spawnRandomElement();
-    }
-
-    setupControls();
-    animate();
-}
-
-// 4. INPUT HANDLING
-function setupControls() {
-    document.addEventListener('keydown', (e) => {
-        switch (e.code) {
-            case 'KeyW': moveForward = true; break;
-            case 'KeyA': moveLeft = true; break;
-            case 'KeyS': moveBackward = true; break;
-            case 'KeyD': moveRight = true; break;
-            case 'Space': if (canJump) playerVelocity.y += 10; canJump = false; break;
-            case 'F2': toggleAdmin(); break;
-        }
-    });
-
-    document.addEventListener('keyup', (e) => {
-        switch (e.code) {
-            case 'KeyW': moveForward = false; break;
-            case 'KeyA': moveLeft = false; break;
-            case 'KeyS': moveBackward = false; break;
-            case 'KeyD': moveRight = false; break;
-        }
-    });
-
-    // Admin Command Processing
-    const cmdInput = document.getElementById('command-line');
-    cmdInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            processCommand(cmdInput.value);
-            cmdInput.value = '';
-        }
-    });
-}
-
-function toggleAdmin() {
-    const panel = document.getElementById('admin-panel');
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-    if(panel.style.display === 'block') document.getElementById('command-line').focus();
-}
-
-// 5. GAME LOGIC
-function spawnRandomElement() {
-    const type = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
-    const geo = new THREE.SphereGeometry(0.5, 16, 16);
-    const mat = new THREE.MeshStandardMaterial({ color: type.color, emissive: type.color, emissiveIntensity: 0.5 });
-    const mesh = new THREE.Mesh(geo, mat);
-    
-    mesh.position.set(
-        (Math.random() - 0.5) * 40,
-        0.5,
-        (Math.random() - 0.5) * 40
-    );
-    
-    mesh.userData = type;
-    scene.add(mesh);
-    spawnedItems.push(mesh);
-}
-
-function processCommand(cmd) {
-    const parts = cmd.split(' ');
-    const action = parts[0];
-
-    switch(action) {
-        case '/speed':
-            playerSpeedMultiplier = parseFloat(parts[1]) || 1;
-            notify(`Admin: Speed set to ${parts[1]}`);
-            break;
-        case '/tp':
-            player.position.set(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
-            notify("Admin: Teleported player.");
-            break;
-        case '/give':
-            const itemName = parts[1];
-            addToInventory({ name: itemName, emoji: '📦' });
-            notify(`Admin: Gave 1x ${itemName}`);
-            break;
-        default:
-            notify("Unknown Command", "red");
-    }
-}
-
-function notify(text) {
-    const container = document.getElementById('notif-container');
+function buildRodGallery() {
+  const wrap = document.getElementById('rodGallery');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  BRAIN_RODS.forEach(rod => {
     const div = document.createElement('div');
-    div.className = 'notif';
-    div.innerText = text;
-    container.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
+    div.className = 'rod-card';
+    div.innerHTML = `<span class="rod-emoji">${rod.emoji}</span><div class="rod-name">${rod.name}</div>`;
+    div.onclick = () => {
+      document.getElementById('spawnType').value = rod.id;
+      wrap.querySelectorAll('.rod-card').forEach(c => c.style.borderColor = 'rgba(255,159,28,0.25)');
+      div.style.borderColor = 'var(--admin)';
+      div.style.background = 'rgba(255,159,28,0.15)';
+    };
+    wrap.appendChild(div);
+  });
 }
 
-function addToInventory(item) {
-    inventory.push(item);
-    const list = document.getElementById('inv-list');
-    const slot = document.createElement('div');
-    slot.className = 'inv-slot';
-    slot.innerHTML = item.emoji || '💎';
-    slot.title = item.name;
-    list.appendChild(slot);
+function refreshSpawnRoomList() {
+  loadState();
+  const sel = document.getElementById('spawnRoom');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Select Room --</option>';
+  Object.values(state.rooms).forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.id;
+    opt.textContent = `${r.name} (${Object.keys(r.players).length} players)`;
+    sel.appendChild(opt);
+  });
 }
 
-// 6. ANIMATION LOOP
-let playerSpeedMultiplier = 1;
+function spawnBrainRod() {
+  const roomId = document.getElementById('spawnRoom').value;
+  const type = document.getElementById('spawnType').value;
+  const customName = document.getElementById('customCharName').value.trim();
+  const customPower = document.getElementById('customCharPower').value.trim();
 
-function animate() {
-    requestAnimationFrame(animate);
-    const delta = clock.getDelta();
+  if (!roomId) { showNotif('Select a room first!', true); return; }
 
-    // Basic Movement Physics
-    const speed = 15 * playerSpeedMultiplier;
-    const friction = 10;
+  loadState();
+  const room = state.rooms[roomId];
+  if (!room) { showNotif('Room not found!', true); return; }
 
-    if (moveForward) playerVelocity.z -= speed * delta;
-    if (moveBackward) playerVelocity.z += speed * delta;
-    if (moveLeft) playerVelocity.x -= speed * delta;
-    if (moveRight) playerVelocity.x += speed * delta;
+  let rod, effectMsg;
 
-    playerVelocity.x -= playerVelocity.x * friction * delta;
-    playerVelocity.z -= playerVelocity.z * friction * delta;
-    
-    // Gravity
-    playerVelocity.y -= 30 * delta; 
+  if (type === 'custom') {
+    if (!customName) { showNotif('Enter a character name!', true); return; }
+    rod = { id:'custom', emoji:'✨', name: customName, desc: customPower || 'A mysterious character spawned by Shah!' };
+    effectMsg = customPower || 'A mysterious power was activated!';
+  } else {
+    rod = BRAIN_RODS.find(r => r.id === type);
+    if (!rod) { showNotif('Invalid rod type!', true); return; }
+    effectMsg = rod.effect(room);
+  }
 
-    player.position.add(playerVelocity.clone().multiplyScalar(delta));
+  // Save rod spawn to room
+  if (!room.activeRods) room.activeRods = [];
+  room.activeRods.push({
+    id: rod.id,
+    emoji: rod.emoji,
+    name: rod.name,
+    desc: rod.desc,
+    effect: effectMsg,
+    spawnedAt: Date.now(),
+    spawnedBy: 'Shah'
+  });
 
-    // Floor Collision
-    if (player.position.y < 1) {
-        playerVelocity.y = 0;
-        player.position.y = 1;
-        canJump = true;
-    }
+  // Announce in chat
+  if (!room.chat) room.chat = [];
+  room.chat.push({
+    author: '👑 Shah (Admin)',
+    msg: `⚡ BRAIN ROD SPAWNED: ${rod.emoji} ${rod.name} — ${effectMsg}`,
+    system: true,
+    time: Date.now()
+  });
 
-    // Camera Follow (Third Person)
-    const cameraOffset = new THREE.Vector3(0, 5, 10);
-    camera.position.lerp(player.position.clone().add(cameraOffset), 0.1);
-    camera.lookAt(player.position);
+  saveState();
+  adminLog(`[Brain Rod] Spawned "${rod.name}" in room "${room.name}". Effect: ${effectMsg}`);
+  showNotif(`${rod.emoji} ${rod.name} spawned in ${room.name}!`);
+  showConfetti();
+  renderActiveRods();
+  adminRefresh();
+}
 
-    // Collection Detection
-    spawnedItems.forEach((item, index) => {
-        // Simple distance check
-        if (player.position.distanceTo(item.position) < 1.5) {
-            addToInventory(item.userData);
-            notify(`Collected: ${item.userData.name}`);
-            scene.remove(item);
-            spawnedItems.splice(index, 1);
-            
-            // Respawn a new one somewhere else
-            setTimeout(spawnRandomElement, 2000);
-        }
-        // Make items float/rotate
-        item.rotation.y += 0.02;
-        item.position.y = 0.5 + Math.sin(Date.now() * 0.002) * 0.2;
+function spawnToAll() {
+  const type = document.getElementById('spawnType').value;
+  if (!type) { showNotif('Select a rod type first!', true); return; }
+  loadState();
+  const rooms = Object.values(state.rooms);
+  if (rooms.length === 0) { showNotif('No active rooms!', true); return; }
+  rooms.forEach(room => {
+    const sel = document.getElementById('spawnRoom');
+    sel.value = room.id;
+    spawnBrainRod();
+  });
+  showNotif(`Spawned in ALL ${rooms.length} rooms! 🌍`);
+}
+
+function clearAllRods() {
+  loadState();
+  Object.values(state.rooms).forEach(r => { r.activeRods = []; });
+  saveState();
+  renderActiveRods();
+  adminLog('[Brain Rod] All active rods cleared.');
+  showNotif('All brain rods cleared!');
+}
+
+function renderActiveRods() {
+  loadState();
+  const wrap = document.getElementById('activeRods');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  let count = 0;
+  Object.values(state.rooms).forEach(room => {
+    (room.activeRods || []).forEach(rod => {
+      const chip = document.createElement('div');
+      chip.className = 'active-rod-chip';
+      chip.innerHTML = `${rod.emoji} ${rod.name} <span style="opacity:0.6;font-size:0.7rem;">in ${sanitize(room.name)}</span>`;
+      wrap.appendChild(chip);
+      count++;
     });
-
-    // Update UI
-    document.getElementById('coords').innerText = 
-        `${Math.round(player.position.x)}, ${Math.round(player.position.y)}, ${Math.round(player.position.z)}`;
-
-    renderer.render(scene, camera);
+  });
+  if (count === 0) wrap.innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">No active rods</span>';
 }
 
-// Window Resize Handling
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
+// Poll for brain rods and show alert to players
+function checkForRods() {
+  if (!state.currentRoom) return;
+  loadState();
+  const room = state.rooms[state.currentRoom];
+  if (!room || !room.activeRods || room.activeRods.length === 0) return;
 
-// START
+  const lastShown = state.lastRodShown || 0;
+  const newRods = room.activeRods.filter(r => r.spawnedAt > lastShown);
+  if (newRods.length === 0) return;
+
+  const rod = newRods[newRods.length - 1];
+  state.lastRodShown = rod.spawnedAt;
+  showRodAlert(rod);
+}
+
+function showRodAlert(rod) {
+  document.getElementById('rodAlertEmoji').textContent = rod.emoji;
+  document.getElementById('rodAlertTitle').textContent = rod.name + ' Spawned!';
+  document.getElementById('rodAlertDesc').textContent = rod.desc;
+  document.getElementById('rodAlertEffect').textContent = '⚡ Effect: ' + rod.effect;
+  document.getElementById('rodOverlay').classList.add('show');
+  document.getElementById('rodAlert').classList.add('show');
+  showConfetti();
+}
+
+function closeRodAlert() {
+  document.getElementById('rodOverlay').classList.remove('show');
+  document.getElementById('rodAlert').classList.remove('show');
+}
+
+// ===== START =====
 init();
-
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Maier - Goosy Gang">
-    <title>AETHERIUS | Restricted Admin Access</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
-
-    <style>
-        :root {
-            --ui-blue: #00a2ff;
-            --ui-dark: #0b0c10;
-            --ui-accent: #66fcf1;
-            --error: #ff4c4c;
-        }
-
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #000; }
-
-        /* 1. LOGIN SCREEN OVERLAY */
-        #login-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, #1b1d1f 0%, #000 100%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease;
-        }
-
-        .login-box {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 40px;
-            border-radius: 15px;
-            border: 1px solid var(--ui-blue);
-            text-align: center;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 30px rgba(0, 162, 255, 0.2);
-        }
-
-        .login-box h1 { color: white; margin-bottom: 25px; font-weight: 200; letter-spacing: 5px; }
-
-        input {
-            display: block;
-            width: 250px;
-            padding: 12px;
-            margin: 10px 0;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid #444;
-            color: white;
-            border-radius: 5px;
-            outline: none;
-        }
-
-        input:focus { border-color: var(--ui-blue); }
-
-        .btn-login {
-            width: 275px;
-            padding: 12px;
-            background: var(--ui-blue);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
-
-        .btn-guest {
-            background: transparent;
-            color: #888;
-            margin-top: 15px;
-            border: 1px solid #333;
-        }
-
-        #login-error { color: var(--error); font-size: 12px; margin-top: 10px; display: none; }
-
-        /* 2. IN-GAME UI */
-        #game-ui { position: absolute; width: 100%; height: 100%; pointer-events: none; display: none; }
-
-        /* ADMIN PANEL (Hidden by Default) */
-        #admin-panel {
-            position: absolute;
-            top: 20px; right: 20px;
-            width: 320px;
-            background: var(--ui-dark);
-            border-left: 4px solid var(--ui-blue);
-            padding: 20px;
-            color: white;
-            pointer-events: auto;
-            display: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        #admin-panel h2 { color: var(--ui-blue); font-size: 14px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 2px; }
-
-        .stat-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; font-family: monospace; }
-
-        #cmd-input {
-            width: 100%;
-            background: #000;
-            border: 1px solid #333;
-            color: var(--ui-accent);
-            padding: 8px;
-            margin-top: 15px;
-            font-family: monospace;
-        }
-
-        /* INVENTORY */
-        #inventory {
-            position: absolute;
-            left: 20px; bottom: 20px;
-            display: flex;
-            gap: 10px;
-            pointer-events: auto;
-        }
-
-        .inv-slot {
-            width: 60px; height: 60px;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            border-radius: 12px;
-        }
-
-        #crosshair {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 6px; height: 6px;
-            background: white;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.5;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="login-overlay">
-        <div class="login-box">
-            <h1>AETHERIUS</h1>
-            <input type="text" id="user-field" placeholder="Username">
-            <input type="password" id="pass-field" placeholder="Password">
-            <button class="btn-login" onclick="attemptLogin()">ENTER WORLD</button>
-            <button class="btn-login btn-guest" onclick="enterAsGuest()">PLAY AS GUEST</button>
-            <div id="login-error">Invalid Admin Credentials</div>
-        </div>
-    </div>
-
-    <div id="game-ui">
-        <div id="crosshair"></div>
-        <div id="inventory"></div>
-
-        <div id="admin-panel">
-            <h2>SYSTEM_OVERRIDE</h2>
-            <div class="stat-row"><span>USER:</span> <span id="admin-name">---</span></div>
-            <div class="stat-row"><span>PERMS:</span> <span id="admin-status" style="color:var(--ui-accent)">---</span></div>
-            <div class="stat-row"><span>POS:</span> <span id="admin-pos">0,0,0</span></div>
-            <div class="stat-row"><span>FPS:</span> <span id="admin-fps">60</span></div>
-            
-            <input type="text" id="cmd-input" placeholder="Enter System Command...">
-            <div style="font-size: 9px; opacity: 0.4; margin-top: 10px;">F2 to Toggle Panel | WASD Move | SPACE Jump</div>
-        </div>
-    </div>
-
-<script>
-/**
- * AETHERIUS ENGINE v2.0
- * Security & Logic Core
- */
-
-// --- USER CONFIGURATION ---
-const ADMIN_USERNAME = "Maier"; 
-const ADMIN_PASSWORD = "123"; // You can change this to whatever you want
-
-let isAdmin = false;
-let playerSpeed = 15;
-let jumpForce = 12;
-
-// --- 3D ENGINE VARIABLES ---
-let scene, camera, renderer, clock, player;
-let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, canJump = false;
-let velocity = new THREE.Vector3();
-let direction = new THREE.Vector3();
-let objects = [];
-
-// 1. AUTHENTICATION LOGIC
-function attemptLogin() {
-    const user = document.getElementById('user-field').value;
-    const pass = document.getElementById('pass-field').value;
-
-    if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
-        isAdmin = true;
-        launchGame("SUPERUSER");
-    } else {
-        document.getElementById('login-error').style.display = 'block';
-    }
-}
-
-function enterAsGuest() {
-    isAdmin = false;
-    launchGame("GUEST");
-}
-
-function launchGame(role) {
-    document.getElementById('login-overlay').style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'block';
-        
-        // Update Admin UI info
-        document.getElementById('admin-name').innerText = isAdmin ? ADMIN_USERNAME : "Guest_User";
-        document.getElementById('admin-status').innerText = role;
-        
-        init3D();
-    }, 500);
-}
-
-// 2. 3D WORLD INITIALIZATION
-function init3D() {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050505);
-    scene.fog = new THREE.Fog(0x050505, 0, 150);
-
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    clock = new THREE.Clock();
-
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    document.body.appendChild(renderer.domElement);
-
-    // Lighting
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-    scene.add(hemi);
-
-    const sun = new THREE.DirectionalLight(0x00a2ff, 1.5);
-    sun.position.set(50, 50, 50);
-    sun.castShadow = true;
-    scene.add(sun);
-
-    // The World Floor
-    const groundGeo = new THREE.PlaneGeometry(1000, 1000);
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    const grid = new THREE.GridHelper(1000, 100, 0x00a2ff, 0x222222);
-    scene.add(grid);
-
-    // Player Object
-    const playerGeo = new THREE.BoxGeometry(1, 2, 1);
-    const playerMat = new THREE.MeshStandardMaterial({ color: isAdmin ? 0x00a2ff : 0x555555 });
-    player = new THREE.Mesh(playerGeo, playerMat);
-    player.position.y = 1;
-    player.castShadow = true;
-    scene.add(player);
-
-    // Populate World with "Element" orbs
-    const colors = [0xff4500, 0x00ff00, 0x00a2ff, 0xffff00];
-    for (let i = 0; i < 50; i++) {
-        const sphere = new THREE.Mesh(
-            new THREE.SphereGeometry(0.5, 16, 16),
-            new THREE.MeshStandardMaterial({ 
-                color: colors[Math.floor(Math.random() * colors.length)],
-                emissive: 0xffffff,
-                emissiveIntensity: 0.2
-            })
-        );
-        sphere.position.set((Math.random() - 0.5) * 100, 0.5, (Math.random() - 0.5) * 100);
-        scene.add(sphere);
-        objects.push(sphere);
-    }
-
-    setupInput();
-    animate();
-}
-
-// 3. INPUT & CONTROLS
-function setupInput() {
-    document.addEventListener('keydown', (e) => {
-        if (document.activeElement.tagName === 'INPUT') return; // Don't move while typing in chat/admin
-
-        switch (e.code) {
-            case 'KeyW': moveForward = true; break;
-            case 'KeyS': moveBackward = true; break;
-            case 'KeyA': moveLeft = true; break;
-            case 'KeyD': moveRight = true; break;
-            case 'Space': if (canJump) velocity.y += jumpForce; canJump = false; break;
-            case 'F2': 
-                if (isAdmin) {
-                    const panel = document.getElementById('admin-panel');
-                    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-                }
-                break;
-        }
-    });
-
-    document.addEventListener('keyup', (e) => {
-        switch (e.code) {
-            case 'KeyW': moveForward = false; break;
-            case 'KeyS': moveBackward = false; break;
-            case 'KeyA': moveLeft = false; break;
-            case 'KeyD': moveRight = false; break;
-        }
-    });
-
-    // Admin Command Input
-    document.getElementById('cmd-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            handleCommand(e.target.value);
-            e.target.value = '';
-        }
-    });
-}
-
-// 4. ADMIN COMMANDS
-function handleCommand(cmd) {
-    const parts = cmd.toLowerCase().split(' ');
-    
-    if (parts[0] === '/speed') {
-        playerSpeed = parseFloat(parts[1]) || 15;
-    } else if (parts[0] === '/jump') {
-        jumpForce = parseFloat(parts[1]) || 12;
-    } else if (parts[0] === '/tp') {
-        player.position.set(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
-    } else if (parts[0] === '/night') {
-        scene.background = new THREE.Color(0x000000);
-    } else if (parts[0] === '/day') {
-        scene.background = new THREE.Color(0x87ceeb);
-    }
-}
-
-// 5. THE GAME LOOP
-function animate() {
-    requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-
-    // Movement Logic
-    velocity.x -= velocity.x * 10.0 * delta;
-    velocity.z -= velocity.z * 10.0 * delta;
-    velocity.y -= 30.0 * delta; // Gravity
-
-    direction.z = Number(moveForward) - Number(moveBackward);
-    direction.x = Number(moveRight) - Number(moveLeft);
-    direction.normalize();
-
-    if (moveForward || moveBackward) velocity.z -= direction.z * playerSpeed * 10.0 * delta;
-    if (moveLeft || moveRight) velocity.x -= direction.x * playerSpeed * 10.0 * delta;
-
-    player.translateX(-velocity.x * delta);
-    player.translateZ(-velocity.z * delta);
-    player.position.y += (velocity.y * delta);
-
-    if (player.position.y < 1) {
-        velocity.y = 0;
-        player.position.y = 1;
-        canJump = true;
-    }
-
-    // Third Person Camera Follow
-    const camOffset = new THREE.Vector3(0, 5, 12);
-    camera.position.lerp(player.position.clone().add(camOffset), 0.1);
-    camera.lookAt(player.position);
-
-    // Collision check for items
-    objects.forEach((obj, idx) => {
-        if (player.position.distanceTo(obj.position) < 1.5) {
-            scene.remove(obj);
-            objects.splice(idx, 1);
-            updateInventory(obj.material.color.getHex());
-        }
-    });
-
-    // Update UI Stats
-    if (isAdmin) {
-        document.getElementById('admin-pos').innerText = 
-            `${Math.round(player.position.x)}, ${Math.round(player.position.y)}, ${Math.round(player.position.z)}`;
-    }
-
-    renderer.render(scene, camera);
-}
-
-function updateInventory(colorHex) {
-    const inv = document.getElementById('inventory');
-    const slot = document.createElement('div');
-    slot.className = 'inv-slot';
-    slot.style.borderColor = '#' + colorHex.toString(16);
-    slot.innerText = '💎';
-    inv.appendChild(slot);
-}
-
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETHERIUS | Multiplayer Verified</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-
-    <style>
-        :root {
-            --admin-blue: #00a2ff;
-            --verified-tick: #1DA1F2;
-            --ui-dark: rgba(10, 10, 12, 0.9);
-        }
-
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #000; }
-
-        /* --- LOGIN SYSTEM --- */
-        #login-screen {
-            position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; display: flex; align-items: center; justify-content: center;
-        }
-        .login-card {
-            background: #111; padding: 40px; border-radius: 20px; border: 1px solid #333;
-            text-align: center; width: 320px;
-        }
-        input {
-            width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444;
-            color: white; border-radius: 8px; outline: none; box-sizing: border-box;
-        }
-        .btn {
-            width: 100%; padding: 12px; background: var(--admin-blue); color: white;
-            border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px;
-        }
-
-        /* --- VERIFIED TICK ICON --- */
-        .tick-icon {
-            display: inline-block; width: 16px; height: 16px;
-            background: var(--verified-tick); color: white; font-size: 10px;
-            border-radius: 50%; text-align: center; line-height: 16px; margin-left: 5px;
-        }
-
-        /* --- MULTIPLAYER CHAT --- */
-        #chat-container {
-            position: absolute; bottom: 20px; left: 20px; width: 300px;
-            pointer-events: auto; z-index: 100;
-        }
-        #chat-box {
-            height: 150px; overflow-y: auto; background: rgba(0,0,0,0.5);
-            padding: 10px; border-radius: 8px; color: white; font-size: 13px;
-            display: flex; flex-direction: column; gap: 5px;
-        }
-        #chat-input { width: 100%; margin-top: 5px; background: rgba(0,0,0,0.8); }
-
-        /* --- ADMIN OVERLAY --- */
-        #admin-status {
-            position: absolute; top: 20px; left: 20px; color: white;
-            background: var(--ui-dark); padding: 10px 20px; border-radius: 30px;
-            border-left: 5px solid var(--admin-blue); font-size: 12px;
-        }
-
-        #crosshair {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 4px; height: 4px; background: white; border-radius: 50%; opacity: 0.5;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="login-screen">
-        <div class="login-card">
-            <h1 style="color:white; margin-bottom:20px;">AETHERIUS</h1>
-            <input type="text" id="user-field" placeholder="Username">
-            <input type="password" id="pass-field" placeholder="Admin Password (Optional)">
-            <button class="btn" onclick="startApp()">START GAME</button>
-            <p id="error" style="color:red; font-size:11px; margin-top:10px; display:none;">Invalid Password for Admin account</p>
-        </div>
-    </div>
-
-    <div id="game-ui" style="display:none;">
-        <div id="crosshair"></div>
-        <div id="admin-status">
-            PLAYER: <span id="display-name">Guest</span> <span id="admin-tick"></span>
-        </div>
-
-        <div id="chat-container">
-            <div id="chat-box"></div>
-            <input type="text" id="chat-input" placeholder="Press Enter to chat...">
-        </div>
-    </div>
-
-<script>
-/**
- * AETHERIUS MULTIPLAYER CORE
- */
-
-// 1. IDENTITY CONFIG
-const ADMIN_NAME = "Maier";
-const ADMIN_PASS = "123"; // Set your password here
-let currentUser = "";
-let isVerifiedAdmin = false;
-
-// 2. NETWORKING (PeerJS)
-let peer;
-let connections = [];
-let otherPlayers = {}; // Stores 3D meshes of other players
-
-function startApp() {
-    const user = document.getElementById('user-field').value || "Guest" + Math.floor(Math.random()*100);
-    const pass = document.getElementById('pass-field').value;
-
-    // Check if user is trying to be the Admin
-    if (user === ADMIN_NAME) {
-        if (pass === ADMIN_PASS) {
-            isVerifiedAdmin = true;
-            currentUser = ADMIN_NAME;
-        } else {
-            document.getElementById('error').style.display = 'block';
-            return;
-        }
-    } else {
-        currentUser = user;
-    }
-
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('game-ui').style.display = 'block';
-    
-    // UI Update for Verified Tick
-    document.getElementById('display-name').innerText = currentUser;
-    if (isVerifiedAdmin) {
-        document.getElementById('admin-tick').innerHTML = '<span class="tick-icon">✔</span>';
-        addChatMessage("System", "Welcome back, Admin Maier. Verified status active.");
-    }
-
-    initNetworking();
-    init3D();
-}
-
-// 3. MULTIPLAYER LOGIC
-function initNetworking() {
-    // We use a public PeerJS server for multiplayer
-    peer = new Peer('aetherius-' + currentUser + '-' + Math.floor(Math.random()*999));
-
-    peer.on('open', (id) => {
-        addChatMessage("Network", "Connected to Global Lobby as " + currentUser);
-    });
-
-    peer.on('connection', (conn) => {
-        setupConn(conn);
-    });
-}
-
-function setupConn(conn) {
-    conn.on('data', (data) => {
-        if (data.type === 'move') {
-            updatePlayerPosition(data.user, data.pos, data.isVerified);
-        }
-        if (data.type === 'chat') {
-            addChatMessage(data.user, data.msg, data.isVerified);
-        }
-    });
-    connections.push(conn);
-}
-
-function addChatMessage(user, msg, verified = false) {
-    const box = document.getElementById('chat-box');
-    const line = document.createElement('div');
-    const tick = verified ? '<span class="tick-icon">✔</span>' : '';
-    line.innerHTML = `<strong>${user}${tick}:</strong> ${msg}`;
-    box.appendChild(line);
-    box.scrollTop = box.scrollHeight;
-}
-
-// 4. 3D ENGINE
-let scene, camera, renderer, player, clock;
-let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-let velocity = new THREE.Vector3();
-
-function init3D() {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a0c);
-    scene.fog = new THREE.Fog(0x0a0a0c, 0, 100);
-
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    clock = new THREE.Clock();
-
-    // Lighting
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-    const light = new THREE.PointLight(0x00a2ff, 1);
-    light.position.set(10, 10, 10);
-    scene.add(light);
-
-    // Floor
-    const grid = new THREE.GridHelper(200, 40, 0x333333, 0x111111);
-    scene.add(grid);
-
-    // Player
-    const geo = new THREE.BoxGeometry(1, 2, 1);
-    const mat = new THREE.MeshStandardMaterial({ color: isVerifiedAdmin ? 0x00a2ff : 0xcccccc });
-    player = new THREE.Mesh(geo, mat);
-    player.position.y = 1;
-    scene.add(player);
-
-    setupInput();
-    animate();
-}
-
-function updatePlayerPosition(userId, pos, verified) {
-    if (!otherPlayers[userId]) {
-        // Create new mesh for a player who joined
-        const geo = new THREE.BoxGeometry(1, 2, 1);
-        const mat = new THREE.MeshStandardMaterial({ color: verified ? 0x00a2ff : 0x444444 });
-        const mesh = new THREE.Mesh(geo, mat);
-        scene.add(mesh);
-        otherPlayers[userId] = mesh;
-        addChatMessage("Server", `${userId} entered the game.`);
-    }
-    otherPlayers[userId].position.set(pos.x, pos.y, pos.z);
-}
-
-function setupInput() {
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyW') moveForward = true;
-        if (e.code === 'KeyS') moveBackward = true;
-        if (e.code === 'KeyA') moveLeft = true;
-        if (e.code === 'KeyD') moveRight = true;
-        if (e.code === 'Enter') {
-            const input = document.getElementById('chat-input');
-            if (input.value) {
-                addChatMessage(currentUser, input.value, isVerifiedAdmin);
-                broadcast({ type: 'chat', user: currentUser, msg: input.value, isVerified: isVerifiedAdmin });
-                input.value = '';
-            }
-            input.focus();
-        }
-    });
-
-    window.addEventListener('keyup', (e) => {
-        if (e.code === 'KeyW') moveForward = false;
-        if (e.code === 'KeyS') moveBackward = false;
-        if (e.code === 'KeyA') moveLeft = false;
-        if (e.code === 'KeyD') moveRight = false;
-    });
-}
-
-function broadcast(data) {
-    connections.forEach(conn => {
-        if (conn.open) conn.send(data);
-    });
-}
-
-function animate() {
-    requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-
-    // Movement
-    const speed = isVerifiedAdmin ? 30 : 15;
-    if (moveForward) player.translateZ(-speed * delta);
-    if (moveBackward) player.translateZ(speed * delta);
-    if (moveLeft) player.translateX(-speed * delta);
-    if (moveRight) player.translateX(speed * delta);
-
-    // Camera follow
-    const offset = new THREE.Vector3(0, 5, 10);
-    camera.position.lerp(player.position.clone().add(offset), 0.1);
-    camera.lookAt(player.position);
-
-    // Network Sync (Send position every frame)
-    broadcast({ 
-        type: 'move', 
-        user: currentUser, 
-        pos: player.position, 
-        isVerified: isVerifiedAdmin 
-    });
-
-    renderer.render(scene, camera);
-}
 </script>
 </body>
 </html>
