@@ -1,0 +1,76 @@
+body {
+    background-color: #0a0a0a; /* Deep black gaming background */
+    color: #00ff41; /* Matrix/Hacker green */
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    overflow: hidden; /* Stops the page from scrolling */
+    user-select: none; /* Stops you from highlighting text while clicking */
+}
+
+#ui-layer {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    pointer-events: none; /* Allows you to click "through" the UI to the game */
+}
+
+h1 {
+    text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; /* Glowing Pink Title */
+    font-size: 3rem;
+    margin-bottom: 5px;
+}
+
+.score-box {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff41;
+    padding: 10px 20px;
+    font-size: 1.5rem;
+    display: inline-block;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    background: radial-gradient(circle, #1a1a1a 0%, #000000 100%);
+}
+
+/* This is the styling for the "Brainrot" items that spawn */
+.brainrot-item {
+    position: absolute;
+    font-size: 60px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    filter: drop-shadow(0 0 10px gold);
+    animation: bounce 2s infinite;
+}
+
+.brainrot-item:hover {
+    transform: scale(1.2);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+/* Admin Panel Styling */
+#admin-panel {
+    pointer-events: auto;
+    background: #222;
+    border: 3px solid red;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 0 30px red;
+}
+
+.admin-btn {
+    pointer-events: auto;
+    background: #444;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
