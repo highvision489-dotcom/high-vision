@@ -131,3 +131,74 @@ function clearWorld() {
     scoreDisplay.innerText = score;
     alert("World has been reset by Admin.");
 }
+let score = 0;
+const ADMIN_PASS = "Admin2026"; // Change this if you want
+const gameContainer = document.getElementById("game-container");
+const scoreDisplay = document.getElementById("score");
+
+// The "AI" Spawner Settings
+let aiSpawnSpeed = 2000; // Spawns every 2 seconds by default
+let aiStatus = true;
+let aiTimer;
+
+const memes = ["🚽", "🗿", "🥤", "💀", "🍔", "🍕"];
+
+function loginAsAdmin() {
+    let entry = prompt("ADMIN ACCESS CODE:");
+    if (entry === ADMIN_PASS) {
+        document.getElementById("admin-panel").style.display = "block";
+        document.getElementById("login-trigger").style.display = "none";
+    }
+}
+
+// THE MAIN SPAWN ENGINE (Used by both AI and Admin)
+function createBrainrot(emoji, isManual = false) {
+    const item = document.createElement("div");
+    item.className = "brainrot-item";
+    item.innerText = emoji || memes[Math.floor(Math.random() * memes.length)];
+    
+    // Admin-spawned items glow blue, AI items glow gold
+    item.style.filter = isManual ? "drop-shadow(0 0 15px #00f)" : "drop-shadow(0 0 15px #f0f)";
+
+    const x = Math.random() * (window.innerWidth - 80);
+    const y = Math.random() * (window.innerHeight - 80);
+    item.style.left = x + "px";
+    item.style.top = y + "px";
+
+    item.onclick = () => {
+        score += 10;
+        scoreDisplay.innerText = score;
+        item.remove();
+    };
+
+    gameContainer.appendChild(item);
+    
+    // Items disappear after 5 seconds if no one steals them
+    setTimeout(() => { if(item) item.remove(); }, 5000);
+}
+
+// THE AI BRAIN (Automatic Spawning)
+function startAISpanner() {
+    aiTimer = setInterval(() => {
+        if(aiStatus) createBrainrot();
+    }, aiSpawnSpeed);
+}
+
+// ADMIN POWERS
+function toggleAI() {
+    aiStatus = !aiStatus;
+    alert("AI Spawning: " + (aiStatus ? "ON" : "OFF"));
+}
+
+function setSpeed(ms) {
+    aiSpawnSpeed = ms;
+    clearInterval(aiTimer); // Reset the timer with new speed
+    startAISpanner();
+}
+
+function adminForceSpawn() {
+    createBrainrot(null, true); // Force a random spawn immediately
+}
+
+// Initialize the game
+startAISpanner();
