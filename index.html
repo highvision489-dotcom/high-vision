@@ -7,216 +7,111 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f14;
-    --surface: #151821;
-    --surface2: #1c2030;
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.18);
-    --text: #e8eaf0;
-    --muted: #6b7280;
-    --accent: #4f8ef7;
-    --accent-dim: rgba(79,142,247,0.12);
-    --green: #34d399;
-    --green-dim: rgba(52,211,153,0.12);
-    --red: #f87171;
-    --red-dim: rgba(248,113,113,0.12);
-    --amber: #fbbf24;
-    --amber-dim: rgba(251,191,36,0.12);
-    --radius: 14px;
-    --radius-sm: 8px;
+    --bg:#0d0f14;--surface:#151821;--surface2:#1c2030;
+    --border:rgba(255,255,255,0.08);--border-h:rgba(255,255,255,0.18);
+    --text:#e8eaf0;--muted:#6b7280;
+    --accent:#4f8ef7;--accent-dim:rgba(79,142,247,0.12);
+    --green:#34d399;--green-dim:rgba(52,211,153,0.15);--green-b:rgba(52,211,153,0.35);
+    --red:#f87171;--red-dim:rgba(248,113,113,0.15);--red-b:rgba(248,113,113,0.35);
+    --amber:#fbbf24;--amber-dim:rgba(251,191,36,0.12);
+    --r:14px;--rs:10px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 400;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-    background-image: radial-gradient(ellipse at 20% 20%, rgba(79,142,247,0.06) 0%, transparent 60%),
-                      radial-gradient(ellipse at 80% 80%, rgba(52,211,153,0.04) 0%, transparent 60%);
-  }
-  .screen { display: none; width: 100%; max-width: 520px; }
-  .screen.active { display: block; }
-  .screen-wide { max-width: 780px; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.25rem;background-image:radial-gradient(ellipse at 15% 15%,rgba(79,142,247,.07) 0%,transparent 55%),radial-gradient(ellipse at 85% 85%,rgba(52,211,153,.05) 0%,transparent 55%)}
+  .screen{display:none;width:100%;max-width:500px}
+  .screen.active{display:block}
+  .wide{max-width:640px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.75rem;margin-bottom:1rem}
+  .display{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:600;letter-spacing:-.5px;line-height:1.2}
+  .sub{color:var(--muted);font-size:.875rem;margin-top:.4rem;line-height:1.6}
+  input,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:.8rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9375rem;outline:none;transition:border-color .2s;margin-bottom:.875rem;-webkit-appearance:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  select option{background:#1c2030}
+  label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.35rem;font-weight:500;letter-spacing:.02em}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:.8rem 1.5rem;border-radius:var(--rs);border:1px solid var(--border);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9375rem;font-weight:500;cursor:pointer;transition:all .2s}
+  .btn:hover{background:var(--surface2);border-color:var(--border-h)}
+  .bp{background:var(--accent);border-color:var(--accent);color:#fff}
+  .bp:hover{background:#3a7de8;border-color:#3a7de8;color:#fff}
+  .bf{width:100%}
+  .ghost{border:none;color:var(--accent);padding:0;background:transparent;font-size:.875rem;cursor:pointer;font-family:'DM Sans',sans-serif}
+  .ghost:hover{text-decoration:underline}
+  .ic{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 1.25rem}
+  .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:.75rem;font-weight:500}
+  .bb{background:var(--accent-dim);color:var(--accent)}
+  .bg{background:var(--green-dim);color:var(--green)}
+  .br{background:var(--red-dim);color:var(--red)}
+  .ba{background:var(--amber-dim);color:var(--amber)}
+  .alert{padding:.75rem 1rem;border-radius:var(--rs);font-size:.875rem;margin-bottom:1rem}
+  .ar{background:var(--red-dim);color:var(--red);border:1px solid var(--red-b)}
+  .ag{background:var(--green-dim);color:var(--green);border:1px solid var(--green-b)}
+  .progress{height:5px;background:var(--surface2);border-radius:3px;margin-bottom:1.25rem}
+  .pf{height:100%;background:var(--accent);border-radius:3px;transition:width .5s ease}
+  .option{display:flex;align-items:center;gap:12px;padding:.9rem 1rem;border:1.5px solid var(--border);border-radius:var(--rs);margin-bottom:.625rem;cursor:pointer;transition:all .2s;font-size:.9375rem;user-select:none}
+  .option:hover:not(.locked){border-color:var(--border-h);background:var(--surface2)}
+  .option.selected{border-color:var(--accent);background:var(--accent-dim)}
+  .option.selected .od{border-color:var(--accent);background:var(--accent)}
+  .option.correct{border-color:var(--green-b);background:var(--green-dim);animation:pg .4s ease}
+  .option.correct .od{border-color:var(--green);background:var(--green)}
+  .option.correct .od::after{content:'✓';color:#0d0f14;font-size:11px;font-weight:700}
+  .option.wrong{border-color:var(--red-b);background:var(--red-dim);animation:shake .4s ease}
+  .option.wrong .od{border-color:var(--red);background:var(--red)}
+  .option.wrong .od::after{content:'✕';color:#0d0f14;font-size:10px;font-weight:700}
+  .option.rc{border-color:var(--green-b);background:var(--green-dim)}
+  .option.rc .od{border-color:var(--green);background:var(--green)}
+  .option.rc .od::after{content:'✓';color:#0d0f14;font-size:11px;font-weight:700}
+  .option.locked{cursor:default}
+  .od{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--muted);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center}
+  .fb{display:flex;align-items:flex-start;gap:10px;padding:.875rem 1rem;border-radius:var(--rs);margin-top:.75rem;font-size:.875rem;line-height:1.55;animation:fu .3s ease}
+  .fbc{background:var(--green-dim);border:1px solid var(--green-b);color:var(--green)}
+  .fbw{background:var(--red-dim);border:1px solid var(--red-b);color:var(--red)}
+  .sp{display:inline-flex;align-items:center;gap:6px;font-size:.8125rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;margin-bottom:.75rem}
+  .sp span{font-weight:500}
+  .gc{color:var(--green)}.rc2{color:var(--red)}
+  .timer{font-size:1.6rem;font-weight:500;color:var(--accent);font-variant-numeric:tabular-nums}
+  .timer.warn{color:var(--amber)}.timer.danger{color:var(--red)}
+  .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem}
+  .stat{background:var(--surface2);border-radius:var(--rs);padding:1rem;text-align:center}
+  .sv{font-size:1.75rem;font-weight:500}
+  .sl{font-size:.75rem;color:var(--muted);margin-top:2px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:.625rem 0;border-bottom:1px solid var(--border);font-size:.875rem}
+  .row:last-child{border-bottom:none}
+  .ar2{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:1rem 1.25rem;margin-bottom:.625rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .sw{position:relative;width:40px;height:22px}
+  .sw input{opacity:0;width:0;height:0}
+  .sl2{position:absolute;cursor:pointer;inset:0;background:var(--surface2);border-radius:11px;border:1px solid var(--border);transition:.3s}
+  .sl2:before{content:"";position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:var(--muted);border-radius:50%;transition:.3s}
+  input:checked+.sl2{background:var(--green);border-color:var(--green)}
+  input:checked+.sl2:before{transform:translateX(18px);background:#fff}
+  .tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--surface2);border-radius:var(--rs);padding:4px}
+  .tab{flex:1;text-align:center;padding:.5rem;border-radius:7px;cursor:pointer;font-size:.875rem;color:var(--muted);transition:all .2s}
+  .tab.active{background:var(--surface);color:var(--text)}
+  .qr{display:flex;flex-wrap:wrap;gap:5px;margin-top:.75rem}
+  .qd{width:24px;height:24px;border-radius:6px;font-size:.7rem;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .qd.c{background:var(--green-dim);color:var(--green);border:1px solid var(--green-b)}
+  .qd.w{background:var(--red-dim);color:var(--red);border:1px solid var(--red-b)}
+  .qd.s{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+  @keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes pg{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 4px rgba(52,211,153,.2)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .fadein{animation:fi .35s ease forwards}
 
-  /* Cards */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 2rem;
-    margin-bottom: 1rem;
-  }
-  .card-sm { padding: 1.25rem 1.5rem; }
+  /* Waiting spinner */
+  .waiting{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:2rem 0;color:var(--muted);font-size:.9rem}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* Typography */
-  .display { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 600; letter-spacing: -0.5px; line-height: 1.2; }
-  .subtitle { color: var(--muted); font-size: 0.875rem; margin-top: 0.4rem; line-height: 1.6; }
-  h2 { font-size: 1.25rem; font-weight: 500; }
-  h3 { font-size: 1rem; font-weight: 500; }
-
-  /* Inputs */
-  input, select {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9375rem;
-    outline: none;
-    transition: border-color 0.2s;
-    margin-bottom: 0.875rem;
-    -webkit-appearance: none;
-  }
-  input:focus, select:focus { border-color: var(--accent); }
-  select option { background: #1c2030; }
-  label { display: block; font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.375rem; font-weight: 500; letter-spacing: 0.02em; }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-  }
-  .btn:hover { background: var(--surface2); border-color: var(--border-hover); }
-  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #3a7de8; border-color: #3a7de8; }
-  .btn-full { width: 100%; }
-  .btn-ghost { border: none; color: var(--accent); padding: 0; background: transparent; font-size: 0.875rem; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-  .btn-ghost:hover { text-decoration: underline; }
-
-  /* Icon circle */
-  .icon-circle {
-    width: 56px; height: 56px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; margin: 0 auto 1.25rem;
-  }
-
-  /* Badge */
-  .badge {
-    display: inline-block; padding: 3px 10px;
-    border-radius: 20px; font-size: 0.75rem; font-weight: 500;
-  }
-  .badge-blue { background: var(--accent-dim); color: var(--accent); }
-  .badge-green { background: var(--green-dim); color: var(--green); }
-  .badge-red { background: var(--red-dim); color: var(--red); }
-  .badge-amber { background: var(--amber-dim); color: var(--amber); }
-
-  /* Alert */
-  .alert { padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.875rem; margin-bottom: 1rem; }
-  .alert-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
-  .alert-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
-  .alert-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
-
-  /* Progress */
-  .progress { height: 4px; background: var(--surface2); border-radius: 2px; margin-bottom: 1.5rem; }
-  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
-
-  /* Options */
-  .option {
-    display: flex; align-items: center; gap: 12px;
-    padding: 0.875rem 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    margin-bottom: 0.625rem;
-    cursor: pointer;
-    transition: all 0.18s;
-    font-size: 0.9375rem;
-  }
-  .option:hover { border-color: var(--border-hover); background: var(--surface2); }
-  .option.selected { border-color: var(--accent); background: var(--accent-dim); }
-  .option-dot {
-    width: 18px; height: 18px; border-radius: 50%;
-    border: 1.5px solid var(--muted); flex-shrink: 0; transition: all 0.18s;
-  }
-  .option.selected .option-dot { border-color: var(--accent); background: var(--accent); }
-
-  /* Timer */
-  .timer { font-size: 1.75rem; font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; }
-  .timer.warn { color: var(--amber); }
-  .timer.danger { color: var(--red); }
-
-  /* Stats grid */
-  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
-  .stat { background: var(--surface2); border-radius: var(--radius-sm); padding: 1rem; text-align: center; }
-  .stat-val { font-size: 1.75rem; font-weight: 500; }
-  .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
-  /* Row */
-  .row { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
-  .row:last-child { border-bottom: none; }
-
-  /* Admin table */
-  .admin-row {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 1rem 1.25rem;
-    margin-bottom: 0.625rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .toggle { display: flex; align-items: center; gap: 8px; }
-  .switch { position: relative; width: 40px; height: 22px; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider {
-    position: absolute; cursor: pointer; inset: 0;
-    background: var(--surface2); border-radius: 11px; border: 1px solid var(--border);
-    transition: 0.3s;
-  }
-  .slider:before {
-    content: ""; position: absolute; height: 16px; width: 16px;
-    left: 2px; bottom: 2px; background: var(--muted); border-radius: 50%; transition: 0.3s;
-  }
-  input:checked + .slider { background: var(--green); border-color: var(--green); }
-  input:checked + .slider:before { transform: translateX(18px); background: #fff; }
-
-  /* Divider */
-  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
-
-  /* Tabs (admin) */
-  .tab-row { display: flex; gap: 4px; margin-bottom: 1.5rem; background: var(--surface2); border-radius: var(--radius-sm); padding: 4px; }
-  .tab { flex: 1; text-align: center; padding: 0.5rem; border-radius: 6px; cursor: pointer; font-size: 0.875rem; color: var(--muted); transition: all 0.2s; }
-  .tab.active { background: var(--surface); color: var(--text); }
-
-  /* Animations */
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  .fadein { animation: fadeIn 0.35s ease forwards; }
-
-  /* Mobile */
-  @media (max-width: 480px) {
-    .display { font-size: 1.5rem; }
-    .card { padding: 1.25rem; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-  }
+  @media(max-width:480px){.display{font-size:1.5rem}.card{padding:1.25rem}.sg{grid-template-columns:1fr 1fr}body{padding:1rem}}
 </style>
 </head>
 <body>
 
-<!-- ===== LOGIN ===== -->
+<!-- LOGIN -->
 <div id="s-login" class="screen active fadein">
   <div style="text-align:center;margin-bottom:1.75rem">
-    <div class="icon-circle" style="background:var(--accent-dim)">📋</div>
+    <div class="ic" style="background:var(--accent-dim)">📋</div>
     <div class="display">Exam Portal</div>
-    <p class="subtitle">Enter your name and select your subject to begin</p>
+    <p class="sub">Enter your name and select your exam subject</p>
   </div>
   <div class="card">
     <label>Your Full Name</label>
@@ -227,467 +122,535 @@
       <option value="polsci">Political Science</option>
       <option value="construction">Construction Engineering</option>
     </select>
-    <div style="margin-top:0.25rem;margin-bottom:1.25rem">
-      <label>Exam Password</label>
-      <input id="inp-pass" type="password" placeholder="Enter exam password" style="margin-bottom:0">
-      <p style="font-size:0.75rem;color:var(--muted);margin-top:6px">Student password: <b style="color:var(--text)">exam2026</b></p>
-    </div>
-    <button class="btn btn-primary btn-full" onclick="studentLogin()">Start Exam →</button>
+    <label>Exam Password</label>
+    <input id="inp-pass" type="password" placeholder="Enter exam password" style="margin-bottom:6px">
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.25rem">Student password: <b style="color:var(--text)">exam2026</b></p>
+    <button class="btn bp bf" onclick="studentLogin()">Start Exam →</button>
     <div style="text-align:center;margin-top:1rem">
-      <button class="btn-ghost" onclick="showScreen('s-adminlogin')">Instructor login</button>
+      <button class="ghost" onclick="showScreen('s-adminlogin')">Instructor login</button>
     </div>
   </div>
   <div id="login-err" style="display:none"></div>
 </div>
 
-<!-- ===== ADMIN LOGIN ===== -->
+<!-- ADMIN LOGIN -->
 <div id="s-adminlogin" class="screen fadein">
   <div style="text-align:center;margin-bottom:1.75rem">
-    <div class="icon-circle" style="background:var(--red-dim)">🔐</div>
+    <div class="ic" style="background:var(--red-dim)">🔐</div>
     <div class="display">Admin Panel</div>
-    <p class="subtitle">Instructor access only</p>
+    <p class="sub">Instructor access only</p>
   </div>
   <div class="card">
     <label>Admin Password</label>
-    <input id="inp-adminpass" type="password" placeholder="Enter admin password" style="margin-bottom:0">
-    <p style="font-size:0.75rem;color:var(--muted);margin-top:6px;margin-bottom:1.25rem">Admin password: <b style="color:var(--text)">examiner</b></p>
-    <button class="btn btn-primary btn-full" onclick="adminLogin()">Access Control Panel →</button>
+    <input id="inp-adminpass" type="password" placeholder="Enter admin password" style="margin-bottom:6px">
+    <p style="font-size:.75rem;color:var(--muted);margin-bottom:1.25rem">Admin password: <b style="color:var(--text)">examiner</b></p>
+    <button class="btn bp bf" onclick="adminLogin()">Access Control Panel →</button>
     <div style="text-align:center;margin-top:1rem">
-      <button class="btn-ghost" onclick="showScreen('s-login')">← Back to student login</button>
+      <button class="ghost" onclick="showScreen('s-login')">← Back</button>
     </div>
   </div>
   <div id="admin-login-err" style="display:none"></div>
 </div>
 
-<!-- ===== INSTRUCTIONS ===== -->
+<!-- INSTRUCTIONS -->
 <div id="s-instructions" class="screen fadein">
   <div style="margin-bottom:1.5rem">
-    <div id="inst-badge" style="margin-bottom:0.75rem"></div>
+    <div id="inst-badge" style="margin-bottom:.75rem"></div>
     <div class="display" id="inst-title"></div>
-    <p class="subtitle" id="inst-student"></p>
+    <p class="sub" id="inst-student"></p>
   </div>
   <div class="card">
-    <h3 style="margin-bottom:1rem;color:var(--muted);font-size:0.8125rem;letter-spacing:0.05em;text-transform:uppercase">Before you begin</h3>
+    <h3 style="margin-bottom:1rem;color:var(--muted);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase">Before you begin</h3>
     <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
-      <li style="display:flex;gap:10px;font-size:0.9rem"><span style="color:var(--accent);flex-shrink:0">→</span> 20 multiple-choice questions</li>
-      <li style="display:flex;gap:10px;font-size:0.9rem"><span style="color:var(--accent);flex-shrink:0">→</span> 30 minutes time limit</li>
-      <li style="display:flex;gap:10px;font-size:0.9rem"><span style="color:var(--accent);flex-shrink:0">→</span> One correct answer per question</li>
-      <li style="display:flex;gap:10px;font-size:0.9rem"><span style="color:var(--accent);flex-shrink:0">→</span> You cannot go back to previous questions</li>
-      <li style="display:flex;gap:10px;font-size:0.9rem"><span style="color:var(--accent);flex-shrink:0">→</span> Results are published by your instructor</li>
+      <li style="display:flex;gap:10px;font-size:.9rem"><span style="color:var(--accent);flex-shrink:0">→</span>20 multiple-choice questions</li>
+      <li style="display:flex;gap:10px;font-size:.9rem"><span style="color:var(--accent);flex-shrink:0">→</span>30 minutes time limit</li>
+      <li style="display:flex;gap:10px;font-size:.9rem"><span style="color:var(--green);flex-shrink:0">→</span><b>Answers checked instantly</b> — green = correct, red = wrong</li>
+      <li style="display:flex;gap:10px;font-size:.9rem"><span style="color:var(--accent);flex-shrink:0">→</span>Correct answer always shown after you pick</li>
+      <li style="display:flex;gap:10px;font-size:.9rem"><span style="color:var(--accent);flex-shrink:0">→</span>Cannot go back to previous questions</li>
+      <li style="display:flex;gap:10px;font-size:.9rem"><span style="color:var(--accent);flex-shrink:0">→</span>Final score published by your instructor</li>
     </ul>
   </div>
-  <button class="btn btn-primary btn-full" style="padding:0.875rem;font-size:1rem" onclick="startExam()">Begin Exam →</button>
+  <button class="btn bp bf" style="padding:.9rem;font-size:1rem" onclick="startExam()">Begin Exam →</button>
 </div>
 
-<!-- ===== EXAM ===== -->
-<div id="s-exam" class="screen screen-wide fadein">
+<!-- EXAM -->
+<div id="s-exam" class="screen wide fadein">
   <div style="max-width:620px;margin:0 auto">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
       <div>
-        <span id="q-counter" style="font-size:0.8125rem;color:var(--muted)">Question 1 of 20</span><br>
-        <span id="q-subj-lbl" style="font-size:0.75rem;color:var(--muted)"></span>
+        <span id="q-counter" style="font-size:.8rem;color:var(--muted)">Question 1 of 20</span><br>
+        <span id="q-subj-lbl" style="font-size:.75rem;color:var(--muted)"></span>
       </div>
       <div class="timer" id="timer">30:00</div>
     </div>
-    <div class="progress"><div class="progress-fill" id="prog" style="width:5%"></div></div>
-    <div class="card">
-      <p id="q-text" style="font-size:1rem;line-height:1.75;margin-bottom:1.5rem;font-weight:500"></p>
-      <div id="q-options"></div>
+    <div class="progress"><div class="pf" id="prog" style="width:5%"></div></div>
+    <div class="sp" id="score-pill">
+      <span>Score:</span>
+      <span class="gc" id="pill-c">0</span><span> correct</span>
+      <span>·</span>
+      <span class="rc2" id="pill-w">0</span><span> wrong</span>
     </div>
-    <button class="btn btn-primary btn-full" id="btn-next" style="padding:0.875rem;font-size:1rem" onclick="nextQ()" disabled>Next →</button>
+    <div class="card">
+      <p id="q-text" style="font-size:1rem;line-height:1.75;margin-bottom:1.25rem;font-weight:500"></p>
+      <div id="q-options"></div>
+      <div id="q-feedback" style="display:none"></div>
+    </div>
+    <button class="btn bp bf" id="btn-next" style="padding:.875rem;font-size:1rem" onclick="nextQ()" disabled>Next →</button>
   </div>
 </div>
 
-<!-- ===== SUBMITTED ===== -->
+<!-- DONE -->
 <div id="s-done" class="screen fadein">
   <div style="text-align:center;margin-bottom:1.5rem">
-    <div style="font-size:3rem;margin-bottom:0.75rem">✅</div>
+    <div style="font-size:3rem;margin-bottom:.75rem">✅</div>
     <div class="display">Submitted!</div>
-    <p class="subtitle">Your exam has been recorded. Check back when your instructor publishes results.</p>
+    <p class="sub">Your exam has been recorded.</p>
   </div>
   <div class="card">
     <div class="row"><span style="color:var(--muted)">Name</span><b id="done-name"></b></div>
     <div class="row"><span style="color:var(--muted)">Subject</span><b id="done-subj"></b></div>
-    <div class="row"><span style="color:var(--muted)">Questions answered</span><b id="done-answered"></b></div>
-    <div class="row"><span style="color:var(--muted)">Result status</span><span class="badge badge-amber" id="done-status">Awaiting publication</span></div>
+    <div class="row"><span style="color:var(--muted)">Answered</span><b id="done-answered"></b></div>
+    <div class="row"><span style="color:var(--muted)">Status</span><span class="badge ba" id="done-status">Awaiting publication</span></div>
   </div>
+
+  <!-- Waiting state -->
+  <div id="waiting-block">
+    <div class="waiting">
+      <div class="spinner"></div>
+      <span>Waiting for your instructor to publish results…</span>
+    </div>
+  </div>
+
+  <!-- Result block (hidden until published) -->
   <div id="done-result-block" style="display:none">
     <div class="card">
       <h3 style="margin-bottom:1rem">Your Result</h3>
-      <div class="stats-grid">
-        <div class="stat"><div class="stat-val" id="res-score" style="color:var(--accent)"></div><div class="stat-lbl">Score %</div></div>
-        <div class="stat"><div class="stat-val" id="res-correct" style="color:var(--green)"></div><div class="stat-lbl">Correct</div></div>
-        <div class="stat"><div class="stat-val" id="res-wrong" style="color:var(--red)"></div><div class="stat-lbl">Wrong</div></div>
+      <div class="sg">
+        <div class="stat"><div class="sv" id="res-score" style="color:var(--accent)"></div><div class="sl">Score %</div></div>
+        <div class="stat"><div class="sv" id="res-correct" style="color:var(--green)"></div><div class="sl">Correct</div></div>
+        <div class="stat"><div class="sv" id="res-wrong" style="color:var(--red)"></div><div class="sl">Wrong</div></div>
       </div>
-      <div id="res-grade" style="text-align:center;padding:0.75rem;font-size:1rem;font-weight:500"></div>
+      <div id="res-grade" style="text-align:center;padding:.75rem 0;font-size:1.1rem;font-weight:500"></div>
+      <div style="margin-top:.5rem">
+        <p style="font-size:.75rem;color:var(--muted);margin-bottom:.5rem">Question breakdown</p>
+        <div class="qr" id="res-breakdown"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ===== ADMIN PANEL ===== -->
-<div id="s-admin" class="screen screen-wide fadein">
+<!-- ADMIN -->
+<div id="s-admin" class="screen wide fadein">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px">
     <div>
-      <div class="display" style="font-size:1.5rem">Admin Panel</div>
-      <p style="font-size:0.8125rem;color:var(--muted);margin-top:2px">Control results visibility per student</p>
+      <div class="display" style="font-size:1.4rem">Admin Panel</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-top:2px">Toggle to publish each student's result</p>
     </div>
     <button class="btn" onclick="adminLogout()">Logout</button>
   </div>
-
-  <div class="tab-row">
+  <div class="tabs">
     <div class="tab active" id="tab-polsci" onclick="switchTab('polsci')">Political Science</div>
     <div class="tab" id="tab-construction" onclick="switchTab('construction')">Construction Engineering</div>
   </div>
-
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
-    <h2 id="admin-subject-title">Political Science — Results</h2>
+    <h2 id="admin-title" style="font-size:1rem;font-weight:500">Political Science</h2>
     <div style="display:flex;gap:8px">
-      <button class="btn" style="font-size:0.8125rem;padding:6px 14px" onclick="publishAll()">Publish All</button>
-      <button class="btn" style="font-size:0.8125rem;padding:6px 14px" onclick="unpublishAll()">Unpublish All</button>
+      <button class="btn" style="font-size:.8rem;padding:6px 14px" onclick="publishAll()">Publish All</button>
+      <button class="btn" style="font-size:.8rem;padding:6px 14px" onclick="unpublishAll()">Unpublish All</button>
     </div>
   </div>
-
   <div id="admin-list"></div>
-  <div id="admin-empty" style="display:none;text-align:center;padding:3rem;color:var(--muted);font-size:0.9rem">No submissions yet for this subject.</div>
+  <div id="admin-empty" style="display:none;text-align:center;padding:3rem;color:var(--muted);font-size:.9rem">No submissions yet.</div>
 </div>
 
 <script>
-// ─── DATA ───────────────────────────────────────────────────────────────────
-
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
 const STUDENT_PASS = 'exam2026';
-const ADMIN_PASS = 'examiner';
-const SUBJECT_NAMES = { polsci: 'Political Science', construction: 'Construction Engineering' };
+const ADMIN_PASS   = 'examiner';
+const SNAMES = { polsci:'Political Science', construction:'Construction Engineering' };
+const STORAGE_SUBS = 'ep_subs_v2';
+const STORAGE_PUB  = 'ep_pub_v2';
 
+// ── QUESTIONS ──────────────────────────────────────────────────────────────
 const QUESTIONS = {
-  polsci: [
-    { q: "What is the primary purpose of a constitution in a democratic state?", opts: ["To grant power to the military", "To establish the framework of government and protect citizens' rights", "To regulate economic activity", "To define foreign policy"], ans: 1 },
-    { q: "Which political philosopher wrote 'The Social Contract'?", opts: ["John Locke", "Thomas Hobbes", "Jean-Jacques Rousseau", "Immanuel Kant"], ans: 2 },
-    { q: "What does the term 'separation of powers' refer to?", opts: ["Division of land between states", "Distribution of government authority among legislative, executive, and judicial branches", "Separation of political parties", "Division of military command"], ans: 1 },
-    { q: "In a parliamentary system, the head of government is typically:", opts: ["The President", "The Prime Minister", "The Chief Justice", "The Speaker"], ans: 1 },
-    { q: "Which of the following best defines 'sovereignty'?", opts: ["The right of citizens to vote", "Supreme authority of a state over its territory", "The power of the judiciary", "International law compliance"], ans: 1 },
-    { q: "What is 'federalism'?", opts: ["A system where power is concentrated in a central government", "A system that divides power between national and regional governments", "Rule by a federation of political parties", "International cooperation between states"], ans: 1 },
-    { q: "Which body is the highest legislative authority in most democracies?", opts: ["The Cabinet", "The Supreme Court", "The Parliament or Congress", "The Central Bank"], ans: 2 },
-    { q: "The concept of 'checks and balances' ensures that:", opts: ["Tax collection is balanced annually", "No single branch of government becomes too powerful", "Military spending is checked by civilians", "International treaties are balanced"], ans: 1 },
-    { q: "What is 'proportional representation' in an electoral system?", opts: ["Each constituency elects one representative", "Seats in parliament reflect the proportion of votes each party receives", "Only the majority party wins all seats", "Representatives are appointed proportionally by the president"], ans: 1 },
-    { q: "Which international organization was established after World War II to maintain global peace?", opts: ["NATO", "European Union", "United Nations", "World Trade Organization"], ans: 2 },
-    { q: "What is 'political ideology'?", opts: ["A government's economic policy", "A set of ideas and beliefs that shape political behavior and policy", "The official religion of a state", "A diplomatic agreement between nations"], ans: 1 },
-    { q: "Liberalism as a political ideology primarily emphasizes:", opts: ["State control over the economy", "Individual freedom, civil rights, and limited government", "Collective ownership of production", "Traditional values and institutions"], ans: 1 },
-    { q: "What is 'gerrymandering'?", opts: ["A method of fair election counting", "Manipulating electoral district boundaries to favor a particular party", "A form of international negotiation", "A constitutional amendment process"], ans: 1 },
-    { q: "A 'bicameral' legislature consists of:", opts: ["One chamber of elected officials", "Two chambers or houses", "A committee of military officers", "Elected and appointed members in one chamber"], ans: 1 },
-    { q: "What does 'judicial review' allow courts to do?", opts: ["Review judges' salaries", "Declare laws unconstitutional", "Elect new judges", "Approve government budgets"], ans: 1 },
-    { q: "Which of the following is an example of a civil right?", opts: ["The right to declare war", "The right to vote and freedom from discrimination", "The right to impose taxes", "The right to veto legislation"], ans: 1 },
-    { q: "'Soft power' in international relations refers to:", opts: ["Military intervention", "Economic sanctions", "Influencing other nations through culture, diplomacy, and values", "Nuclear deterrence"], ans: 2 },
-    { q: "What is a 'referendum'?", opts: ["A court ruling on constitutional matters", "A direct vote by the public on a specific political question", "An appointment of a new prime minister", "A legislative committee hearing"], ans: 1 },
-    { q: "The 'veto power' in the UN Security Council is held by:", opts: ["All 15 member states", "The Secretary-General", "The five permanent members (P5)", "The General Assembly"], ans: 2 },
-    { q: "Which theory argues that states act primarily in their own self-interest in international relations?", opts: ["Liberalism", "Constructivism", "Realism", "Idealism"], ans: 2 }
+  polsci:[
+    {q:"What is the primary purpose of a constitution in a democratic state?",opts:["To grant power to the military","To establish the framework of government and protect citizens' rights","To regulate economic activity","To define foreign policy"],ans:1},
+    {q:"Which political philosopher wrote 'The Social Contract'?",opts:["John Locke","Thomas Hobbes","Jean-Jacques Rousseau","Immanuel Kant"],ans:2},
+    {q:"What does the term 'separation of powers' refer to?",opts:["Division of land between states","Distribution of government authority among legislative, executive, and judicial branches","Separation of political parties","Division of military command"],ans:1},
+    {q:"In a parliamentary system, the head of government is typically:",opts:["The President","The Prime Minister","The Chief Justice","The Speaker"],ans:1},
+    {q:"Which of the following best defines 'sovereignty'?",opts:["The right of citizens to vote","Supreme authority of a state over its territory","The power of the judiciary","International law compliance"],ans:1},
+    {q:"What is 'federalism'?",opts:["A system where power is concentrated in a central government","A system that divides power between national and regional governments","Rule by a federation of political parties","International cooperation between states"],ans:1},
+    {q:"Which body is the highest legislative authority in most democracies?",opts:["The Cabinet","The Supreme Court","The Parliament or Congress","The Central Bank"],ans:2},
+    {q:"The concept of 'checks and balances' ensures that:",opts:["Tax collection is balanced annually","No single branch of government becomes too powerful","Military spending is checked by civilians","International treaties are balanced"],ans:1},
+    {q:"What is 'proportional representation' in an electoral system?",opts:["Each constituency elects one representative","Seats in parliament reflect the proportion of votes each party receives","Only the majority party wins all seats","Representatives are appointed proportionally by the president"],ans:1},
+    {q:"Which international organization was established after World War II to maintain global peace?",opts:["NATO","European Union","United Nations","World Trade Organization"],ans:2},
+    {q:"What is 'political ideology'?",opts:["A government's economic policy","A set of ideas and beliefs that shape political behavior and policy","The official religion of a state","A diplomatic agreement between nations"],ans:1},
+    {q:"Liberalism as a political ideology primarily emphasizes:",opts:["State control over the economy","Individual freedom, civil rights, and limited government","Collective ownership of production","Traditional values and institutions"],ans:1},
+    {q:"What is 'gerrymandering'?",opts:["A method of fair election counting","Manipulating electoral district boundaries to favor a particular party","A form of international negotiation","A constitutional amendment process"],ans:1},
+    {q:"A 'bicameral' legislature consists of:",opts:["One chamber of elected officials","Two chambers or houses","A committee of military officers","Elected and appointed members in one chamber"],ans:1},
+    {q:"What does 'judicial review' allow courts to do?",opts:["Review judges' salaries","Declare laws unconstitutional","Elect new judges","Approve government budgets"],ans:1},
+    {q:"Which of the following is an example of a civil right?",opts:["The right to declare war","The right to vote and freedom from discrimination","The right to impose taxes","The right to veto legislation"],ans:1},
+    {q:"'Soft power' in international relations refers to:",opts:["Military intervention","Economic sanctions","Influencing other nations through culture, diplomacy, and values","Nuclear deterrence"],ans:2},
+    {q:"What is a 'referendum'?",opts:["A court ruling on constitutional matters","A direct vote by the public on a specific political question","An appointment of a new prime minister","A legislative committee hearing"],ans:1},
+    {q:"The 'veto power' in the UN Security Council is held by:",opts:["All 15 member states","The Secretary-General","The five permanent members (P5)","The General Assembly"],ans:2},
+    {q:"Which theory argues that states act primarily in their own self-interest in international relations?",opts:["Liberalism","Constructivism","Realism","Idealism"],ans:2}
   ],
-  construction: [
-    { q: "What does 'critical path' mean in construction project management?", opts: ["The most dangerous route on a construction site", "The longest sequence of dependent tasks that determines project duration", "The path used by emergency vehicles", "The main road through a construction site"], ans: 1 },
-    { q: "Which foundation type is most suitable for high-rise buildings on weak soil?", opts: ["Strip foundation", "Pad foundation", "Pile foundation", "Raft foundation"], ans: 2 },
-    { q: "What is the water-cement ratio and why is it important?", opts: ["The ratio of water to aggregate; affects workability", "The ratio of water to cement; affects strength and durability of concrete", "The ratio of water to sand; affects texture", "The ratio of water to admixtures; affects setting time"], ans: 1 },
-    { q: "Which structural system transfers loads through triangulated members?", opts: ["Frame structure", "Shell structure", "Truss structure", "Arch structure"], ans: 2 },
-    { q: "What is 'formwork' in construction?", opts: ["Documentation of building plans", "Temporary or permanent molds into which concrete is poured", "Steel reinforcement placement", "Foundation survey work"], ans: 1 },
-    { q: "The term 'grade' in site work refers to:", opts: ["The quality of materials used", "The elevation or slope of the ground surface", "The load-bearing capacity of soil", "The classification of workers on site"], ans: 1 },
-    { q: "What does 'compressive strength' of concrete measure?", opts: ["Its ability to resist bending forces", "Its ability to resist being crushed under load", "Its resistance to water penetration", "Its thermal insulation capacity"], ans: 1 },
-    { q: "Which document specifies the materials, workmanship, and quality requirements for a construction project?", opts: ["Bill of Quantities", "Drawings", "Specifications", "Schedule of Works"], ans: 2 },
-    { q: "What is the purpose of a 'retaining wall'?", opts: ["To support the roof structure", "To hold back soil or water on one side", "To divide interior spaces", "To act as a fire barrier"], ans: 1 },
-    { q: "In reinforced concrete, steel bars are primarily used to resist:", opts: ["Compressive forces", "Thermal expansion", "Tensile forces", "Wind uplift"], ans: 2 },
-    { q: "What is a 'BOQ' (Bill of Quantities) used for?", opts: ["Tracking worker attendance", "Itemizing materials and work quantities for cost estimation and tendering", "Recording safety incidents", "Scheduling equipment deliveries"], ans: 1 },
-    { q: "Which soil test determines the load-bearing capacity of the ground?", opts: ["Sieve analysis", "Standard Penetration Test (SPT)", "Proctor compaction test", "Atterberg limits test"], ans: 1 },
-    { q: "What is 'curing' in concrete construction?", opts: ["Removing formwork after pour", "Maintaining moisture and temperature to ensure proper concrete hydration", "Testing concrete strength", "Adding chemical admixtures to the mix"], ans: 1 },
-    { q: "A 'cantilever' beam is one that:", opts: ["Is supported at both ends", "Is fixed at one end and free at the other", "Hangs from cables", "Spans diagonally across a space"], ans: 1 },
-    { q: "What does 'PPE' stand for on a construction site?", opts: ["Project Planning Equipment", "Personal Protective Equipment", "Prefabricated Panel Elements", "Pre-Pour Evaluation"], ans: 1 },
-    { q: "Which construction method uses prefabricated modules assembled on site?", opts: ["Cast-in-place construction", "Modular construction", "Masonry construction", "Timber frame construction"], ans: 1 },
-    { q: "What is the 'dead load' in structural engineering?", opts: ["Load from wind and earthquakes", "Load from occupants and furniture", "Permanent static weight of the structure itself", "Dynamic loads from machinery"], ans: 2 },
-    { q: "Which document gives a contractor legal permission to begin construction?", opts: ["Architectural drawings", "Building permit", "Site investigation report", "Tender document"], ans: 1 },
-    { q: "What is 'slump test' used to measure in concrete?", opts: ["Compressive strength", "Workability and consistency of fresh concrete", "Aggregate size distribution", "Water absorption rate"], ans: 1 },
-    { q: "The 'critical path method' (CPM) is used in construction to:", opts: ["Test material quality", "Identify which tasks must be completed on time to avoid project delays", "Calculate structural loads", "Design foundation systems"], ans: 1 }
+  construction:[
+    {q:"What does 'critical path' mean in construction project management?",opts:["The most dangerous route on a construction site","The longest sequence of dependent tasks that determines project duration","The path used by emergency vehicles","The main road through a construction site"],ans:1},
+    {q:"Which foundation type is most suitable for high-rise buildings on weak soil?",opts:["Strip foundation","Pad foundation","Pile foundation","Raft foundation"],ans:2},
+    {q:"What is the water-cement ratio and why is it important?",opts:["The ratio of water to aggregate; affects workability","The ratio of water to cement; affects strength and durability of concrete","The ratio of water to sand; affects texture","The ratio of water to admixtures; affects setting time"],ans:1},
+    {q:"Which structural system transfers loads through triangulated members?",opts:["Frame structure","Shell structure","Truss structure","Arch structure"],ans:2},
+    {q:"What is 'formwork' in construction?",opts:["Documentation of building plans","Temporary or permanent molds into which concrete is poured","Steel reinforcement placement","Foundation survey work"],ans:1},
+    {q:"The term 'grade' in site work refers to:",opts:["The quality of materials used","The elevation or slope of the ground surface","The load-bearing capacity of soil","The classification of workers on site"],ans:1},
+    {q:"What does 'compressive strength' of concrete measure?",opts:["Its ability to resist bending forces","Its ability to resist being crushed under load","Its resistance to water penetration","Its thermal insulation capacity"],ans:1},
+    {q:"Which document specifies the materials, workmanship, and quality requirements for a construction project?",opts:["Bill of Quantities","Drawings","Specifications","Schedule of Works"],ans:2},
+    {q:"What is the purpose of a 'retaining wall'?",opts:["To support the roof structure","To hold back soil or water on one side","To divide interior spaces","To act as a fire barrier"],ans:1},
+    {q:"In reinforced concrete, steel bars are primarily used to resist:",opts:["Compressive forces","Thermal expansion","Tensile forces","Wind uplift"],ans:2},
+    {q:"What is a 'BOQ' (Bill of Quantities) used for?",opts:["Tracking worker attendance","Itemizing materials and work quantities for cost estimation and tendering","Recording safety incidents","Scheduling equipment deliveries"],ans:1},
+    {q:"Which soil test determines the load-bearing capacity of the ground?",opts:["Sieve analysis","Standard Penetration Test (SPT)","Proctor compaction test","Atterberg limits test"],ans:1},
+    {q:"What is 'curing' in concrete construction?",opts:["Removing formwork after pour","Maintaining moisture and temperature to ensure proper concrete hydration","Testing concrete strength","Adding chemical admixtures to the mix"],ans:1},
+    {q:"A 'cantilever' beam is one that:",opts:["Is supported at both ends","Is fixed at one end and free at the other","Hangs from cables","Spans diagonally across a space"],ans:1},
+    {q:"What does 'PPE' stand for on a construction site?",opts:["Project Planning Equipment","Personal Protective Equipment","Prefabricated Panel Elements","Pre-Pour Evaluation"],ans:1},
+    {q:"Which construction method uses prefabricated modules assembled on site?",opts:["Cast-in-place construction","Modular construction","Masonry construction","Timber frame construction"],ans:1},
+    {q:"What is the 'dead load' in structural engineering?",opts:["Load from wind and earthquakes","Load from occupants and furniture","Permanent static weight of the structure itself","Dynamic loads from machinery"],ans:2},
+    {q:"Which document gives a contractor legal permission to begin construction?",opts:["Architectural drawings","Building permit","Site investigation report","Tender document"],ans:1},
+    {q:"What is 'slump test' used to measure in concrete?",opts:["Compressive strength","Workability and consistency of fresh concrete","Aggregate size distribution","Water absorption rate"],ans:1},
+    {q:"The 'critical path method' (CPM) is used in construction to:",opts:["Test material quality","Identify which tasks must be completed on time to avoid project delays","Calculate structural loads","Design foundation systems"],ans:1}
   ]
 };
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let state = {
-  currentStudent: null,
-  currentSubject: null,
-  questions: [],
-  currentQ: 0,
-  answers: [],
-  timerInterval: null,
-  timeLeft: 1800,
-  adminTab: 'polsci',
-  submissions: JSON.parse(localStorage.getItem('exam_submissions') || '[]'),
-  published: JSON.parse(localStorage.getItem('exam_published') || '{}')
+const FEEDBACK = {
+  polsci:[
+    "A constitution sets the supreme law of the land and safeguards fundamental rights.",
+    "Rousseau's 1762 work argued that legitimate authority comes from the people.",
+    "Separation of powers prevents tyranny by distributing authority across branches.",
+    "In parliamentary systems the Prime Minister leads the government.",
+    "Sovereignty means a state holds ultimate authority within its borders.",
+    "Federalism balances central and regional power, as seen in the USA and Germany.",
+    "Parliament or Congress is the supreme law-making body in most democracies.",
+    "Checks and balances allow each branch to limit the others.",
+    "Proportional representation gives parties seats matching their share of the national vote.",
+    "The UN was founded in 1945 to prevent future world wars.",
+    "Political ideology is a coherent system of ideas that guides political action.",
+    "Classical liberalism champions individual liberty and limited state power.",
+    "Gerrymandering manipulates district shapes to give one party an electoral advantage.",
+    "Bicameralism (e.g. Senate + House) creates an extra layer of legislative scrutiny.",
+    "Judicial review lets courts strike down laws that violate the constitution.",
+    "Civil rights protect individuals from discrimination and guarantee political participation.",
+    "Soft power relies on attraction — culture, diplomacy, and values rather than force.",
+    "A referendum bypasses parliament and lets citizens vote directly on a policy question.",
+    "The P5 (USA, UK, France, Russia, China) each hold a veto in the Security Council.",
+    "Realism sees international relations as driven by national interest and power competition."
+  ],
+  construction:[
+    "The critical path is the longest chain of dependent tasks — delay one and the project slips.",
+    "Pile foundations transfer loads deep into firm strata when surface soil is too weak.",
+    "A lower water-cement ratio gives stronger, more durable concrete but reduces workability.",
+    "Trusses use triangulated members to efficiently carry loads in bridges, roofs, and towers.",
+    "Formwork (shuttering) gives concrete its shape until it gains enough strength.",
+    "Grade refers to the elevation of the ground surface; correct grading ensures proper drainage.",
+    "Compressive strength (MPa) tells us how much crushing load concrete can withstand.",
+    "Specifications describe the quality standard; drawings show the design — both are contractual.",
+    "Retaining walls resist the lateral pressure of soil or water behind them.",
+    "Steel has high tensile strength; concrete has high compressive strength — together they're ideal.",
+    "A BOQ lists every item of work with quantities so contractors can price the job accurately.",
+    "The SPT measures blow counts to estimate soil bearing capacity and pile design parameters.",
+    "Proper curing keeps concrete moist to ensure full hydration and prevent cracks.",
+    "A cantilever is fixed at one end only — balconies and diving boards are everyday examples.",
+    "PPE (hard hat, hi-vis, gloves, boots, goggles) is the last line of defence against site injuries.",
+    "Modular construction moves work off-site into factories, cutting programme time and waste.",
+    "Dead loads are permanent — the weight of beams, slabs, walls, and finishes.",
+    "A building permit confirms the design complies with planning and building regulations.",
+    "Slump test measures how fresh concrete flows; higher slump = more workable but weaker mix.",
+    "CPM identifies which tasks must stay on schedule to avoid delaying the whole project."
+  ]
 };
 
-function saveData() {
-  localStorage.setItem('exam_submissions', JSON.stringify(state.submissions));
-  localStorage.setItem('exam_published', JSON.stringify(state.published));
-}
+// ── STATE ──────────────────────────────────────────────────────────────────
+let S = {
+  name:'', subject:'', questions:[], currentQ:0,
+  answers:[], results:[], origIndexes:[],
+  liveC:0, liveW:0, answered:false,
+  timerInt:null, timeLeft:1800,
+  submissionId:null,          // <<< the KEY fix — stored here after submit
+  adminTab:'polsci'
+};
 
-// ─── SCREENS ─────────────────────────────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById(id);
+function getSubs() { return JSON.parse(localStorage.getItem(STORAGE_SUBS)||'[]'); }
+function getPub()  { return JSON.parse(localStorage.getItem(STORAGE_PUB) ||'{}'); }
+function saveSubs(d){ localStorage.setItem(STORAGE_SUBS, JSON.stringify(d)); }
+function savePub(d) { localStorage.setItem(STORAGE_PUB,  JSON.stringify(d)); }
+
+// ── SCREENS ────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
   el.classList.add('active');
-  el.classList.remove('fadein');
-  void el.offsetWidth;
-  el.classList.add('fadein');
+  el.classList.remove('fadein'); void el.offsetWidth; el.classList.add('fadein');
 }
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
-function studentLogin() {
-  const name = document.getElementById('inp-name').value.trim();
+// ── STUDENT LOGIN ──────────────────────────────────────────────────────────
+function studentLogin(){
+  const name    = document.getElementById('inp-name').value.trim();
   const subject = document.getElementById('inp-subject').value;
-  const pass = document.getElementById('inp-pass').value;
-  const errEl = document.getElementById('login-err');
-
-  if (!name) { showMsg(errEl, 'Please enter your full name.', 'red'); return; }
-  if (!subject) { showMsg(errEl, 'Please select a subject.', 'red'); return; }
-  if (pass !== STUDENT_PASS) { showMsg(errEl, 'Incorrect exam password.', 'red'); return; }
-
-  state.currentStudent = name;
-  state.currentSubject = subject;
-  errEl.style.display = 'none';
-
-  document.getElementById('inst-badge').innerHTML = `<span class="badge badge-blue">${SUBJECT_NAMES[subject]}</span>`;
-  document.getElementById('inst-title').textContent = subject === 'polsci' ? 'Political Science Exam' : 'Construction Engineering Exam';
-  document.getElementById('inst-student').textContent = `Welcome, ${name}`;
+  const pass    = document.getElementById('inp-pass').value;
+  const err     = document.getElementById('login-err');
+  if(!name)                { showMsg(err,'Please enter your full name.','ar'); return; }
+  if(!subject)             { showMsg(err,'Please select a subject.','ar'); return; }
+  if(pass!==STUDENT_PASS)  { showMsg(err,'Incorrect exam password.','ar'); return; }
+  err.style.display='none';
+  S.name=name; S.subject=subject;
+  document.getElementById('inst-badge').innerHTML=`<span class="badge bb">${SNAMES[subject]}</span>`;
+  document.getElementById('inst-title').textContent=subject==='polsci'?'Political Science Exam':'Construction Engineering Exam';
+  document.getElementById('inst-student').textContent=`Welcome, ${name}`;
   showScreen('s-instructions');
 }
 
-function adminLogin() {
-  const pass = document.getElementById('inp-adminpass').value;
-  const errEl = document.getElementById('admin-login-err');
-  if (pass !== ADMIN_PASS) { showMsg(errEl, 'Incorrect admin password.', 'red'); return; }
-  errEl.style.display = 'none';
-  showScreen('s-admin');
-  renderAdmin();
+// ── ADMIN LOGIN ────────────────────────────────────────────────────────────
+function adminLogin(){
+  const pass=document.getElementById('inp-adminpass').value;
+  const err=document.getElementById('admin-login-err');
+  if(pass!==ADMIN_PASS){ showMsg(err,'Incorrect admin password.','ar'); return; }
+  err.style.display='none';
+  showScreen('s-admin'); renderAdmin();
 }
+function adminLogout(){ showScreen('s-login'); }
 
-function adminLogout() { showScreen('s-login'); }
-
-// ─── EXAM ─────────────────────────────────────────────────────────────────────
-function startExam() {
-  const qs = [...QUESTIONS[state.currentSubject]];
-  // Shuffle questions
-  for (let i = qs.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [qs[i], qs[j]] = [qs[j], qs[i]];
+// ── START EXAM ─────────────────────────────────────────────────────────────
+function startExam(){
+  const master = QUESTIONS[S.subject];
+  // Shuffle by creating index array then shuffling it
+  let idxs = master.map((_,i)=>i);
+  for(let i=idxs.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1)); [idxs[i],idxs[j]]=[idxs[j],idxs[i]];
   }
-  state.questions = qs;
-  state.currentQ = 0;
-  state.answers = new Array(qs.length).fill(null);
-  state.timeLeft = 1800;
-
-  document.getElementById('q-subj-lbl').textContent = SUBJECT_NAMES[state.currentSubject];
-  renderQuestion();
-  startTimer();
-  showScreen('s-exam');
+  S.questions    = idxs.map(i=>master[i]);
+  S.origIndexes  = idxs;   // remember original index for feedback lookup
+  S.currentQ=0;
+  S.answers  = new Array(S.questions.length).fill(null);
+  S.results  = new Array(S.questions.length).fill(null);
+  S.liveC=0; S.liveW=0;
+  S.timeLeft=1800;
+  S.submissionId=null;
+  document.getElementById('q-subj-lbl').textContent=SNAMES[S.subject];
+  renderQ(); startTimer(); showScreen('s-exam');
 }
 
-function renderQuestion() {
-  const q = state.questions[state.currentQ];
-  const total = state.questions.length;
-  document.getElementById('q-counter').textContent = `Question ${state.currentQ + 1} of ${total}`;
-  document.getElementById('prog').style.width = `${((state.currentQ + 1) / total) * 100}%`;
-  document.getElementById('q-text').textContent = q.q;
-  document.getElementById('btn-next').disabled = true;
+// ── RENDER QUESTION ────────────────────────────────────────────────────────
+function renderQ(){
+  const q=S.questions[S.currentQ];
+  const total=S.questions.length;
+  S.answered=false;
+  document.getElementById('q-counter').textContent=`Question ${S.currentQ+1} of ${total}`;
+  document.getElementById('prog').style.width=`${((S.currentQ+1)/total)*100}%`;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-feedback').style.display='none';
+  document.getElementById('q-feedback').innerHTML='';
+  document.getElementById('btn-next').disabled=true;
+  document.getElementById('btn-next').textContent=S.currentQ===total-1?'Submit Exam ✓':'Next →';
+  updatePill();
 
-  const container = document.getElementById('q-options');
-  container.innerHTML = '';
-  q.opts.forEach((opt, i) => {
-    const div = document.createElement('div');
-    div.className = 'option' + (state.answers[state.currentQ] === i ? ' selected' : '');
-    div.innerHTML = `<div class="option-dot"></div><span>${opt}</span>`;
-    div.onclick = () => selectOption(i);
-    container.appendChild(div);
+  const c=document.getElementById('q-options');
+  c.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const div=document.createElement('div');
+    div.className='option';
+    div.id=`opt-${i}`;
+    div.innerHTML=`<div class="od"></div><span>${esc(opt)}</span>`;
+    div.onclick=()=>pick(i);
+    c.appendChild(div);
   });
-
-  if (state.answers[state.currentQ] !== null) {
-    document.getElementById('btn-next').disabled = false;
-  }
-
-  const nextBtn = document.getElementById('btn-next');
-  nextBtn.textContent = state.currentQ === state.questions.length - 1 ? 'Submit Exam ✓' : 'Next →';
 }
 
-function selectOption(idx) {
-  state.answers[state.currentQ] = idx;
-  document.querySelectorAll('.option').forEach((el, i) => {
-    el.classList.toggle('selected', i === idx);
-  });
-  document.getElementById('btn-next').disabled = false;
+// ── PICK AN ANSWER ─────────────────────────────────────────────────────────
+function pick(idx){
+  if(S.answered) return;
+  S.answered=true;
+  S.answers[S.currentQ]=idx;
+
+  const q=S.questions[S.currentQ];
+  const ok=idx===q.ans;
+  S.results[S.currentQ]=ok;
+  if(ok) S.liveC++; else S.liveW++;
+
+  // Lock all
+  document.querySelectorAll('.option').forEach(el=>el.classList.add('locked'));
+
+  // Style picked
+  document.getElementById(`opt-${idx}`).classList.add(ok?'correct':'wrong');
+
+  // Reveal correct if wrong
+  if(!ok) document.getElementById(`opt-${q.ans}`).classList.add('rc');
+
+  // Feedback
+  const origIdx = S.origIndexes[S.currentQ];
+  const fbText  = FEEDBACK[S.subject][origIdx]||'';
+  const fb=document.getElementById('q-feedback');
+  fb.innerHTML=`<div class="fb ${ok?'fbc':'fbw'}">
+    <span style="font-size:1rem;flex-shrink:0;margin-top:1px">${ok?'✅':'❌'}</span>
+    <span><b>${ok?'Correct!':'Incorrect.'}</b>${fbText?' '+fbText:''}</span>
+  </div>`;
+  fb.style.display='block';
+
+  updatePill();
+  document.getElementById('btn-next').disabled=false;
 }
 
-function nextQ() {
-  if (state.currentQ < state.questions.length - 1) {
-    state.currentQ++;
-    renderQuestion();
-  } else {
-    submitExam();
-  }
+function updatePill(){
+  document.getElementById('pill-c').textContent=S.liveC;
+  document.getElementById('pill-w').textContent=S.liveW;
 }
 
-function startTimer() {
-  clearInterval(state.timerInterval);
-  state.timerInterval = setInterval(() => {
-    state.timeLeft--;
-    const m = Math.floor(state.timeLeft / 60).toString().padStart(2, '0');
-    const s = (state.timeLeft % 60).toString().padStart(2, '0');
-    const el = document.getElementById('timer');
-    el.textContent = `${m}:${s}`;
-    el.className = 'timer' + (state.timeLeft <= 300 ? (state.timeLeft <= 60 ? ' danger' : ' warn') : '');
-    if (state.timeLeft <= 0) { clearInterval(state.timerInterval); submitExam(); }
-  }, 1000);
+function nextQ(){
+  if(S.currentQ<S.questions.length-1){ S.currentQ++; renderQ(); }
+  else submitExam();
 }
 
-function submitExam() {
-  clearInterval(state.timerInterval);
+// ── TIMER ──────────────────────────────────────────────────────────────────
+function startTimer(){
+  clearInterval(S.timerInt);
+  S.timerInt=setInterval(()=>{
+    S.timeLeft--;
+    const m=Math.floor(S.timeLeft/60).toString().padStart(2,'0');
+    const s=(S.timeLeft%60).toString().padStart(2,'0');
+    const el=document.getElementById('timer');
+    el.textContent=`${m}:${s}`;
+    el.className='timer'+(S.timeLeft<=60?' danger':S.timeLeft<=300?' warn':'');
+    if(S.timeLeft<=0){ clearInterval(S.timerInt); submitExam(); }
+  },1000);
+}
 
-  // Score
-  let correct = 0;
-  state.questions.forEach((q, i) => {
-    if (state.answers[i] === q.ans) correct++;
-  });
-  const wrong = state.questions.length - correct - state.answers.filter(a => a === null).length;
-  const answered = state.answers.filter(a => a !== null).length;
-  const score = Math.round((correct / state.questions.length) * 100);
+// ── SUBMIT ─────────────────────────────────────────────────────────────────
+function submitExam(){
+  clearInterval(S.timerInt);
+  const correct  = S.liveC;
+  const wrong    = S.liveW;
+  const answered = S.answers.filter(a=>a!==null).length;
+  const score    = Math.round((correct/S.questions.length)*100);
+  const breakdown= S.results.map(r=>r===true?'c':r===false?'w':'s');
 
-  const submission = {
-    id: Date.now(),
-    name: state.currentStudent,
-    subject: state.currentSubject,
-    score,
-    correct,
-    wrong,
-    answered,
-    total: state.questions.length,
-    time: new Date().toLocaleString()
-  };
-  state.submissions.push(submission);
-  state.published[submission.id] = false;
-  saveData();
+  // Generate unique ID
+  const subId = Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  S.submissionId = subId;   // <<< store in state so polling can find it
 
-  // Show done screen
-  document.getElementById('done-name').textContent = state.currentStudent;
-  document.getElementById('done-subj').textContent = SUBJECT_NAMES[state.currentSubject];
-  document.getElementById('done-answered').textContent = `${answered} / ${state.questions.length}`;
-  document.getElementById('done-status').textContent = 'Awaiting publication';
-  document.getElementById('done-status').className = 'badge badge-amber';
-  document.getElementById('done-result-block').style.display = 'none';
+  const sub={id:subId, name:S.name, subject:S.subject, score, correct, wrong, answered, total:S.questions.length, breakdown, time:new Date().toLocaleString()};
 
-  // Poll for result publication
-  startResultPolling(submission.id, score, correct, wrong);
+  // Save to localStorage
+  const subs=getSubs(); subs.push(sub); saveSubs(subs);
+  const pub=getPub(); pub[subId]=false; savePub(pub);
+
+  // Populate done screen
+  document.getElementById('done-name').textContent    =S.name;
+  document.getElementById('done-subj').textContent    =SNAMES[S.subject];
+  document.getElementById('done-answered').textContent=`${answered} / ${S.questions.length}`;
+  document.getElementById('done-status').textContent  ='Awaiting publication';
+  document.getElementById('done-status').className    ='badge ba';
+  document.getElementById('waiting-block').style.display='block';
+  document.getElementById('done-result-block').style.display='none';
+
+  // Cache result data for when it gets published
+  S._cachedResult={score,correct,wrong,breakdown};
+
   showScreen('s-done');
+  startPolling();
 }
 
-function startResultPolling(submissionId, score, correct, wrong) {
-  const poll = setInterval(() => {
-    const pub = JSON.parse(localStorage.getItem('exam_published') || '{}');
-    if (pub[submissionId]) {
-      clearInterval(poll);
-      showResult(score, correct, wrong);
+// ── POLLING — checks localStorage every 1.5s for this specific submission ──
+function startPolling(){
+  clearInterval(S._pollInt);
+  S._pollInt=setInterval(()=>{
+    const pub=getPub();
+    if(pub[S.submissionId]===true){
+      clearInterval(S._pollInt);
+      revealResult();
     }
-  }, 2000);
+  },1500);
 }
 
-function showResult(score, correct, wrong) {
-  document.getElementById('done-status').textContent = 'Published';
-  document.getElementById('done-status').className = 'badge badge-green';
-  document.getElementById('res-score').textContent = score + '%';
-  document.getElementById('res-correct').textContent = correct;
-  document.getElementById('res-wrong').textContent = wrong;
-  const grade = score >= 90 ? '🏆 Excellent' : score >= 75 ? '✅ Good' : score >= 60 ? '📘 Pass' : '❌ Fail';
-  document.getElementById('res-grade').textContent = grade;
-  document.getElementById('done-result-block').style.display = 'block';
+function revealResult(){
+  const {score,correct,wrong,breakdown}=S._cachedResult;
+  document.getElementById('done-status').textContent='Published ✓';
+  document.getElementById('done-status').className='badge bg';
+  document.getElementById('waiting-block').style.display='none';
+
+  document.getElementById('res-score').textContent  =score+'%';
+  document.getElementById('res-correct').textContent=correct;
+  document.getElementById('res-wrong').textContent  =wrong;
+
+  const grade=score>=90?'🏆 Excellent — Outstanding!':score>=75?'✅ Good — Well done!':score>=60?'📘 Pass — Keep it up!':'❌ Fail — Keep studying!';
+  document.getElementById('res-grade').textContent=grade;
+
+  const bd=document.getElementById('res-breakdown');
+  bd.innerHTML=breakdown.map((r,i)=>`<div class="qd ${r}" title="Q${i+1}">${i+1}</div>`).join('');
+
+  document.getElementById('done-result-block').style.display='block';
 }
 
-// ─── ADMIN ────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  state.adminTab = tab;
-  document.getElementById('tab-polsci').classList.toggle('active', tab === 'polsci');
-  document.getElementById('tab-construction').classList.toggle('active', tab === 'construction');
-  document.getElementById('admin-subject-title').textContent = SUBJECT_NAMES[tab] + ' — Results';
+// ── ADMIN ──────────────────────────────────────────────────────────────────
+function switchTab(tab){
+  S.adminTab=tab;
+  document.getElementById('tab-polsci').classList.toggle('active',tab==='polsci');
+  document.getElementById('tab-construction').classList.toggle('active',tab==='construction');
+  document.getElementById('admin-title').textContent=SNAMES[tab];
   renderAdmin();
 }
 
-function renderAdmin() {
-  state.submissions = JSON.parse(localStorage.getItem('exam_submissions') || '[]');
-  state.published = JSON.parse(localStorage.getItem('exam_published') || '{}');
+function renderAdmin(){
+  const subs     = getSubs();
+  const pub      = getPub();
+  const list     = document.getElementById('admin-list');
+  const empty    = document.getElementById('admin-empty');
+  const filtered = subs.filter(s=>s.subject===S.adminTab);
 
-  const list = document.getElementById('admin-list');
-  const empty = document.getElementById('admin-empty');
-  const filtered = state.submissions.filter(s => s.subject === state.adminTab);
+  if(!filtered.length){ list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
 
-  if (filtered.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-
-  list.innerHTML = filtered.map(s => {
-    const pub = state.published[s.id];
-    const grade = s.score >= 90 ? '🏆' : s.score >= 75 ? '✅' : s.score >= 60 ? '📘' : '❌';
+  list.innerHTML=filtered.map(s=>{
+    const isPublished=pub[s.id]===true;
+    const clr=s.score>=60?'var(--green)':'var(--red)';
+    const icon=s.score>=90?'🏆':s.score>=75?'✅':s.score>=60?'📘':'❌';
     return `
-      <div class="admin-row">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:500;font-size:0.9375rem">${escHtml(s.name)}</div>
-          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">${s.time}</div>
+    <div class="ar2">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;font-size:.9375rem">${esc(s.name)}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px">${s.time}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="text-align:right">
+          <div style="font-size:1.2rem;font-weight:500;color:${clr}">${s.score}%</div>
+          <div style="font-size:.7rem;color:var(--muted)">${s.correct}/${s.total} ${icon}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div style="text-align:center">
-            <div style="font-size:1.25rem;font-weight:500;color:${s.score>=60?'var(--green)':'var(--red)'}">${s.score}%</div>
-            <div style="font-size:0.7rem;color:var(--muted)">${s.correct}/${s.total} ${grade}</div>
+        <span class="badge ${isPublished?'bg':'ba'}">${isPublished?'Published':'Hidden'}</span>
+        <label style="margin:0;display:flex;align-items:center">
+          <div class="sw">
+            <input type="checkbox" ${isPublished?'checked':''} onchange="togglePub('${s.id}',this.checked)">
+            <span class="sl2"></span>
           </div>
-          <span class="badge ${pub ? 'badge-green' : 'badge-amber'}">${pub ? 'Published' : 'Hidden'}</span>
-          <label class="toggle">
-            <div class="switch">
-              <input type="checkbox" ${pub ? 'checked' : ''} onchange="togglePublish(${s.id}, this.checked)">
-              <span class="slider"></span>
-            </div>
-          </label>
-        </div>
-      </div>`;
+        </label>
+      </div>
+    </div>`;
   }).join('');
 }
 
-function togglePublish(id, val) {
-  state.published[id] = val;
-  saveData();
-  renderAdmin();
+function togglePub(id,val){
+  const pub=getPub(); pub[id]=val; savePub(pub); renderAdmin();
+}
+function publishAll(){
+  const pub=getPub(); getSubs().filter(s=>s.subject===S.adminTab).forEach(s=>pub[s.id]=true); savePub(pub); renderAdmin();
+}
+function unpublishAll(){
+  const pub=getPub(); getSubs().filter(s=>s.subject===S.adminTab).forEach(s=>pub[s.id]=false); savePub(pub); renderAdmin();
 }
 
-function publishAll() {
-  state.submissions.filter(s => s.subject === state.adminTab).forEach(s => { state.published[s.id] = true; });
-  saveData();
-  renderAdmin();
-}
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function showMsg(el,msg,cls){ el.className=`alert ${cls}`; el.textContent=msg; el.style.display='block'; }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function unpublishAll() {
-  state.submissions.filter(s => s.subject === state.adminTab).forEach(s => { state.published[s.id] = false; });
-  saveData();
-  renderAdmin();
-}
-
-// ─── UTILS ───────────────────────────────────────────────────────────────────
-function showMsg(el, msg, type) {
-  el.className = `alert alert-${type}`;
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// Enter key support
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    const active = document.querySelector('.screen.active');
-    if (active.id === 's-login') studentLogin();
-    if (active.id === 's-adminlogin') adminLogin();
-  }
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  const id=document.querySelector('.screen.active')?.id;
+  if(id==='s-login')      studentLogin();
+  if(id==='s-adminlogin') adminLogin();
 });
 </script>
 </body>
